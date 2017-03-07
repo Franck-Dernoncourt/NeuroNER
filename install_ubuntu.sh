@@ -20,7 +20,7 @@ sudo pip3 install -U networkx matplotlib scikit-learn scipy
 # To install NeuroNER:
 wget https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip
 sudo apt-get install -y unzip
-unzip NeuroNER-master.zip
+unzip master.zip
 mkdir NeuroNER-master/data/word_vectors
 cd NeuroNER-master/data/word_vectors
 
