@@ -7,6 +7,7 @@ import operator
 import os
 import time
 import datetime
+import platform
 
 def order_dictionary(dictionary, mode, reverse=False):
     '''
@@ -87,7 +88,7 @@ def get_current_time_in_seconds():
     '''
     http://stackoverflow.com/questions/415511/how-to-get-current-time-in-python
     '''
-    return(time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime()))
+    return(time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()))
 
 def get_current_time_in_miliseconds():
     '''
@@ -127,3 +128,6 @@ def print_tf_graph(graph):
     for child in graph[node]:
       print("%s -> %s" % (node.name, child.name))
 '''
+
+# if __name__ == '__main__':
+#     print(get_current_time_in_miliseconds())
