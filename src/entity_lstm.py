@@ -6,6 +6,7 @@ import time
 import utils_tf
 
 def bidirectional_LSTM(input, hidden_state_dimension, initializer, sequence_length=None, output_sequence=True):
+
     with tf.variable_scope("bidirectional_LSTM"):
         if sequence_length == None:
             batch_size = 1
@@ -19,7 +20,7 @@ def bidirectional_LSTM(input, hidden_state_dimension, initializer, sequence_leng
         for direction in ["forward", "backward"]:
             with tf.variable_scope(direction):
                 # LSTM cell
-                lstm_cell[direction] = tf.contrib.rnn.LSTMCell(hidden_state_dimension, forget_bias=1.0, initializer=initializer)
+                lstm_cell[direction] = tf.contrib.rnn.CoupledInputForgetGateLSTMCell(hidden_state_dimension, forget_bias=1.0, initializer=initializer, state_is_tuple=True)
                 # initial state
                 initial_cell_state = tf.get_variable("initial_cell_state", shape=[1, hidden_state_dimension], dtype=tf.float32, initializer=initializer)
                 initial_output_state = tf.get_variable("initial_output_state", shape=[1, hidden_state_dimension], dtype=tf.float32, initializer=initializer)
@@ -40,12 +41,12 @@ def bidirectional_LSTM(input, hidden_state_dimension, initializer, sequence_leng
             output = tf.concat([outputs_forward, outputs_backward], axis=2, name='output_sequence')
         else:
             # max pooling
-            outputs_forward, outputs_backward = outputs
-            output = tf.concat([outputs_forward, outputs_backward], axis=2, name='output_sequence')
-            output = tf.reduce_max(output, axis=1, name='output')
-#             # last pooling
-#             final_states_forward, final_states_backward = final_states
-#             output = tf.concat([final_states_forward[1], final_states_backward[1]], axis=1, name='output')
+#             outputs_forward, outputs_backward = outputs
+#             output = tf.concat([outputs_forward, outputs_backward], axis=2, name='output_sequence')
+#             output = tf.reduce_max(output, axis=1, name='output')
+            # last pooling
+            final_states_forward, final_states_backward = final_states
+            output = tf.concat([final_states_forward[1], final_states_backward[1]], axis=1, name='output')
 
     return output
 
@@ -56,8 +57,8 @@ class EntityLSTM(object):
     Uses a character embedding layer followed by an LSTM to generate vector representation from characters for each token.
     Then the character vector is concatenated with token embedding vector, which is input to another LSTM  followed by a CRF layer.
     """
-    # TODO: parameters
     def __init__(self, dataset, parameters):
+
         self.verbose = False
 
         # Placeholders for input, output and dropout
@@ -73,10 +74,11 @@ class EntityLSTM(object):
 
         if parameters['use_character_lstm']:
             # Character-level LSTM
+            # https://github.com/Franck-Dernoncourt/nlp/blob/master/textclassifier_char/src/model.py
             # Idea: reshape so that we have a tensor [number_of_token, max_token_length, token_embeddings_size], which we pass to the LSTM
 
             # Character embedding layer
-            with tf.variable_scope("character_embedding"): 
+            with tf.variable_scope("character_embedding"):  # http://stackoverflow.com/questions/39665702/tensorflow-value-error-with-variable-scope
                 self.character_embedding_weights = tf.get_variable(
                     "character_embedding_weights",
                     shape=[dataset.alphabet_size, parameters['character_embedding_dimension']],
@@ -89,6 +91,7 @@ class EntityLSTM(object):
             with tf.variable_scope('character_lstm'):
                 character_lstm_output = bidirectional_LSTM(embedded_characters, parameters['character_lstm_hidden_state_dimension'], initializer,
                                                            sequence_length=self.input_token_lengths, output_sequence=False)
+               
 
         # Token embedding layer
         with tf.variable_scope("token_embedding"):
@@ -96,7 +99,7 @@ class EntityLSTM(object):
                 "token_embedding_weights",
                 shape=[dataset.vocabulary_size, parameters['token_embedding_dimension']],
                 initializer=initializer)
-            embedded_tokens = tf.nn.embedding_lookup(self.token_embedding_weights, self.input_token_indices) 
+            embedded_tokens = tf.nn.embedding_lookup(self.token_embedding_weights, self.input_token_indices) #  [sequence_length, parameters['token_embedding_dimension']]
             utils_tf.variable_summaries(self.token_embedding_weights)
 
         # Concatenate character LSTM outputs and token embeddings
@@ -116,20 +119,20 @@ class EntityLSTM(object):
             token_lstm_input_drop_expanded = tf.expand_dims(token_lstm_input_drop, axis=0, name='token_lstm_input_drop_expanded')
             if self.verbose: print("token_lstm_input_drop_expanded: {0}".format(token_lstm_input_drop_expanded))
 
+        # https://www.tensorflow.org/api_guides/python/contrib.rnn
+        # Prepare data shape to match `rnn` function requirements
+        # Current data input shape: (batch_size, n_steps, n_input)
+        # Required shape: 'n_steps' tensors list of shape (batch_size, n_input)
+        #token_lstm_input_drop_expanded = tf.expand_dims(embedded_tokens, axis=0, name='token_lstm_input_drop_expanded')
 
         # Token LSTM layer
         with tf.variable_scope('token_lstm'):
             token_lstm_output = bidirectional_LSTM(token_lstm_input_drop_expanded, parameters['token_lstm_hidden_state_dimension'], initializer, output_sequence=True)
+           
             token_lstm_output_squeezed = tf.squeeze(token_lstm_output, axis=0)
 
         # Needed only if Bidirectional LSTM is used for token level
         with tf.variable_scope("feedforward_after_lstm"):
-            # http://stackoverflow.com/questions/37098546/difference-between-variable-and-get-variable-in-tensorflow
-            '''
-            'W = tf.get_variable(
-                tf.random_uniform([dataset.vocabulary_size, parameters['token_embedding_dimension']], -1.0, 1.0),
-                name="W")
-            '''
             W = tf.get_variable(
                 "W",
                 shape=[2 * parameters['token_lstm_hidden_state_dimension'], parameters['token_lstm_hidden_state_dimension']],
@@ -137,18 +140,10 @@ class EntityLSTM(object):
             b = tf.Variable(tf.constant(0.0, shape=[parameters['token_lstm_hidden_state_dimension']]), name="bias")
             outputs = tf.nn.xw_plus_b(token_lstm_output_squeezed, W, b, name="output_before_tanh")
             outputs = tf.nn.tanh(outputs, name="output_after_tanh")
-            
             utils_tf.variable_summaries(W)
             utils_tf.variable_summaries(b)
-            
 
         with tf.variable_scope("feedforward_before_crf"):
-            # http://stackoverflow.com/questions/37098546/difference-between-variable-and-get-variable-in-tensorflow
-            '''
-            'W = tf.get_variable(
-                tf.random_uniform([dataset.vocabulary_size, parameters['token_embedding_dimension']], -1.0, 1.0),
-                name="W")
-            '''
             W = tf.get_variable(
                 "W",
                 shape=[parameters['token_lstm_hidden_state_dimension'], dataset.number_of_classes],
@@ -160,14 +155,29 @@ class EntityLSTM(object):
             utils_tf.variable_summaries(W)
             utils_tf.variable_summaries(b)
 
+
+
         # CRF layer
         if parameters['use_crf']:
             with tf.variable_scope("crf"):
+                
+                # Add start and end tokens
+                small_score = -1000.0
+                large_score = 0.0
+                sequence_length = tf.shape(self.unary_scores)[0]
+                unary_scores_with_start_and_end = tf.concat([self.unary_scores, tf.tile( tf.constant(small_score, shape=[1, 2]) , [sequence_length, 1])], 1)
+                start_unary_scores = [[small_score] * dataset.number_of_classes + [large_score, small_score]]
+                end_unary_scores = [[small_score] * dataset.number_of_classes + [small_score, large_score]]
+                self.unary_scores = tf.concat([start_unary_scores, unary_scores_with_start_and_end, end_unary_scores], 0)
+                start_index = dataset.number_of_classes
+                end_index = dataset.number_of_classes + 1
+                input_label_indices_flat_with_start_and_end = tf.concat([ tf.constant(start_index, shape=[1]), self.input_label_indices_flat, tf.constant(end_index, shape=[1]) ], 0)
 
-                sequence_lengths = tf.shape(self.unary_scores)[0]
-                sequence_lengths = tf.expand_dims(sequence_lengths, axis=0, name='sequence_lengths')
+                # Apply CRF layer
+                sequence_length = tf.shape(self.unary_scores)[0]
+                sequence_lengths = tf.expand_dims(sequence_length, axis=0, name='sequence_lengths')
                 unary_scores_expanded = tf.expand_dims(self.unary_scores, axis=0, name='unary_scores_expanded')
-                input_label_indices_flat_batch = tf.expand_dims(self.input_label_indices_flat, axis=0, name='input_label_indices_flat_batch')
+                input_label_indices_flat_batch = tf.expand_dims(input_label_indices_flat_with_start_and_end, axis=0, name='input_label_indices_flat_batch')
                 if self.verbose: print('unary_scores_expanded: {0}'.format(unary_scores_expanded))
                 if self.verbose: print('input_label_indices_flat_batch: {0}'.format(input_label_indices_flat_batch))
                 if self.verbose: print("sequence_lengths: {0}".format(sequence_lengths))
@@ -187,7 +197,7 @@ class EntityLSTM(object):
 
             # Calculate Mean cross-entropy loss
             with tf.variable_scope("loss"):
-                losses = tf.nn.softmax_cross_entropy_with_logits(logits=scores, labels=self.input_label_indices_vector, name='softmax')
+                losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.unary_scores, labels=self.input_label_indices_vector, name='softmax')
                 self.loss =  tf.reduce_mean(losses, name='cross_entropy_mean_loss') #+ l2_reg_lambda * l2_loss
             with tf.variable_scope("accuracy"):
                 correct_predictions = tf.equal(self.predictions, tf.argmax(self.input_label_indices_vector, 1))
@@ -228,6 +238,7 @@ class EntityLSTM(object):
         token_to_vector = {}
         for cur_line in file_input:
             count += 1
+            #if count > 1000:break
             cur_line = cur_line.strip()
             cur_line = cur_line.split(' ')
             if len(cur_line)==0:continue
@@ -259,6 +270,8 @@ class EntityLSTM(object):
         print("number_of_token_lowercase_found: {0}".format(number_of_token_lowercase_found))
         print("number_of_token_lowercase_normalized_found: {0}".format(number_of_token_lowercase_normalized_found))
         print('number_of_loaded_word_vectors: {0}'.format(number_of_loaded_word_vectors))
+        #print("len(dataset.token_to_index): {0}".format(len(dataset.token_to_index)))
+        #print("len(dataset.index_to_token): {0}".format(len(dataset.index_to_token)))
         print("dataset.vocabulary_size: {0}".format(dataset.vocabulary_size))
         sess.run(self.token_embedding_weights.assign(initial_weights))
 

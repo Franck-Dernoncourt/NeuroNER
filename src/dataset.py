@@ -66,12 +66,6 @@ class Dataset(object):
             labels.append(new_label_sequence)
             tokens.append(new_token_sequence)
 
-        #token_count = utils.order_dictionary(token_count, 'value', reverse = True)
-        #label_count = utils.order_dictionary(label_count, 'key', reverse = False)
-
-        #token_indices.append([token_to_index[token] for token in token_sequence])
-
-
 
         return labels, tokens, token_count, label_count, character_count
 
@@ -135,8 +129,6 @@ class Dataset(object):
         token_to_index[self.UNK] = self.UNK_TOKEN_INDEX
         iteration_number = 0
         number_of_unknown_tokens = 0
-#         if self.verbose: print("parameters['remove_unknown_tokens']: {0}".format(parameters['remove_unknown_tokens']))
-#         if self.verbose: print("len(token_count['train'].keys()): {0}".format(len(token_count['train'].keys())))
         for token, count in token_count['all'].items():
             if iteration_number == self.UNK_TOKEN_INDEX: iteration_number += 1
 
@@ -145,14 +137,8 @@ class Dataset(object):
                 (all_pretrained_tokens == None or \
                 token not in all_pretrained_tokens and \
                 token.lower() not in all_pretrained_tokens and \
-                re.sub('\d', '0', token.lower()) not in all_pretrained_tokens):#all( [x not in all_pretrained_tokens for x in [ token, token.lower(), re.sub('\d', '0', token.lower()) ]]):
+                re.sub('\d', '0', token.lower()) not in all_pretrained_tokens):
 
-#                         if self.verbose: print("token: {0}".format(token))
-#                         if self.verbose: print("token.lower(): {0}".format(token.lower()))
-#                         if self.verbose: print("re.sub('\d', '0', token.lower()): {0}".format(re.sub('\d', '0', token.lower())))
-#                         assert(token not in )
-#                         assert(token.lower() not in all_pretrained_tokens)
-#                         assert(re.sub('\d', '0', token.lower()) not in all_pretrained_tokens)
                 token_to_index[token] =  self.UNK_TOKEN_INDEX
                 number_of_unknown_tokens += 1
                 self.tokens_mapped_to_unk.append(token)
@@ -193,12 +179,8 @@ class Dataset(object):
 
         if self.verbose: print('token_count[\'train\'][0:10]: {0}'.format(list(token_count['train'].items())[0:10]))
         token_to_index = utils.order_dictionary(token_to_index, 'value', reverse = False)
-        #if self.verbose: print('token_to_index[0:10]: {0}'.format(token_to_index[0:10]))
         index_to_token = utils.reverse_dictionary(token_to_index)
         if parameters['remove_unknown_tokens'] == 1: index_to_token[self.UNK_TOKEN_INDEX] = self.UNK
-        #if self.verbose: print('index_to_token[0:10]: {0}'.format(index_to_token[0:10]))
-
-        #if self.verbose: print('label_count[\'train\']: {0}'.format(label_count['train']))
         label_to_index = utils.order_dictionary(label_to_index, 'value', reverse = False)
         if self.verbose: print('label_to_index: {0}'.format(label_to_index))
         index_to_label = utils.reverse_dictionary(label_to_index)

@@ -1,10 +1,3 @@
-'''
-To run:
-CUDA_VISIBLE_DEVICES="" python3.5 main.py &
-CUDA_VISIBLE_DEVICES=1 python3.5 main.py &
-CUDA_VISIBLE_DEVICES=2 python3.5 main.py &
-CUDA_VISIBLE_DEVICES=3 python3.5 main.py &
-'''
 from __future__ import print_function
 import tensorflow as tf
 import os
@@ -175,7 +168,7 @@ def main():
             bad_counter = 0 # number of epochs with no improvement on the validation test in terms of F1-score
             previous_best_valid_f1_score = 0
             transition_params_trained = np.random.rand(len(dataset.unique_labels),len(dataset.unique_labels))
-            model_saver = tf.train.Saver()  # defaults to saving all variables
+            model_saver = tf.train.Saver(max_to_keep=parameters['maximum_number_of_epochs'])  # defaults to saving all variables
             epoch_number = -1
             try:
                 while True:
@@ -259,7 +252,3 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-#         break # debugging
-    #cProfile.run('main()') # if you want to do some profiling
-
-
