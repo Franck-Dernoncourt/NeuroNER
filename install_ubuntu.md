@@ -44,7 +44,6 @@ To install BRAT (optional, you just need it if you want to easily change or view
 
 ```
 Installing brat:
-sudo apt install -y apache2
 mkdir brat
 cd brat
 mkdir -p data work
@@ -55,4 +54,4 @@ cd brat-v1.3_Crunchy_Frog
 python standalone.py
 ```
 
-BRAT should now be accessible through the browser at [127.0.0.1:8001](127.0.0.1:8001).
+BRAT should now be accessible through the web browser at [http://127.0.0.1:8001](http://127.0.0.1:8001).

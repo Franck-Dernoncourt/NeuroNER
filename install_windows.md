@@ -4,7 +4,7 @@
 
 First, install Python 3.5 and TensorFlow following these instructions: [How to install TensorFlow on Windows?](http://stackoverflow.com/a/39902815/395857)
 
-Then, from the command prompt (make sure `pip` is connected to Python 3.5. You can do so by running `pip -V`):
+Then, from the command prompt (make sure `pip` is connected to Python 3.5. You can verify it by running `pip -V`):
 
 ```
 pip install -U networkx matplotlib scikit-learn scipy
@@ -17,7 +17,12 @@ Make sure the `perl.exe` binary is in your `Path` system environment variable:
 
 ![](http://neuroner.com/perl2.png "")
 
+<!---
+
 To add perl in your `Path` system environment variable:
 
 ![](http://neuroner.com/perl.png "")
 
+!-->
+
+ The `tensorboard.exe` binary should also be in your `Path` system environment variable, if you plan to use TensorBoard (optional).
