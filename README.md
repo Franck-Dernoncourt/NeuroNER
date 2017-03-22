@@ -2,7 +2,7 @@
 
 NeuroNER is a program that performs named-entity recognition (NER). Website: [neuroner.com](http://neuroner.com).
 
-This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3.5 and TensorFlow 1.0, you can directly jump to the [Running NeuroNER section](#installing-neuroner).
+This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3.5 and TensorFlow 1.0, you can directly jump to the [Installing NeuroNER section](#installing-neuroner).
 
 Alternatively, you can use this [installation script](install_ubuntu.sh) for Ubuntu, which:
 
