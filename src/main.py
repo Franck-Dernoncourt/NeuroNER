@@ -1,29 +1,26 @@
+'''
+To run:
+CUDA_VISIBLE_DEVICES="" python3.5 main.py &
+CUDA_VISIBLE_DEVICES=1 python3.5 main.py &
+CUDA_VISIBLE_DEVICES=2 python3.5 main.py &
+CUDA_VISIBLE_DEVICES=3 python3.5 main.py &
+'''
 from __future__ import print_function
 import tensorflow as tf
 import os
-import collections
 import utils
-import networkx as nx
 import numpy as np
 import matplotlib
 import copy
-import subprocess
-import utils_nlp
-import re
-from matplotlib.cbook import ls_mapper
-import distutils
 import distutils.util
 import pickle
-from fileinput import close
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import token
-import sklearn.preprocessing
-import sklearn.metrics
-import dataset as ds
+import glob
+import brat_to_conll
+import conll_to_brat
 import codecs
+matplotlib.use('Agg')
+import dataset as ds
 import time
-import math
 import random
 import evaluate
 import configparser
@@ -36,53 +33,100 @@ from tensorflow.contrib.tensorboard.plugins import projector
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 print('TensorFlow version: {0}'.format(tf.__version__))
 
-# Hide some other warnings
 import warnings
 warnings.filterwarnings('ignore')
 
 
-def load_parameters():
+def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verbose=True):
     '''
     Load parameters from the ini file, and ensure that each parameter is cast to the correct type
     '''
     conf_parameters = configparser.ConfigParser()
-    conf_parameters.read(os.path.join('.','parameters.ini'))
+    conf_parameters.read(parameters_filepath)
     nested_parameters = utils.convert_configparser_to_dictionary(conf_parameters)
     parameters = {}
     for k,v in nested_parameters.items():
         parameters.update(v)
     for k,v in parameters.items():
-        if k in ['remove_unknown_tokens','character_embedding_dimension','character_lstm_hidden_state_dimension','token_embedding_dimension',
+        if k in ['character_embedding_dimension','character_lstm_hidden_state_dimension','token_embedding_dimension',
                  'token_lstm_hidden_state_dimension','patience','maximum_number_of_epochs','maximum_training_time','number_of_cpu_threads','number_of_gpus']:
             parameters[k] = int(v)
         if k in ['dropout_rate', 'learning_rate']:
             parameters[k] = float(v)
-        if k in ['use_character_lstm','is_character_lstm_bidirect','is_token_lstm_bidirect','use_crf']:
+        if k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose']:
             parameters[k] = distutils.util.strtobool(v)
-    pprint(parameters)
+    if verbose: pprint(parameters)
+    return parameters, conf_parameters
 
+def get_valid_dataset_filepaths(parameters):
     dataset_filepaths = {}
-    dataset_filepaths['train'] = os.path.join(parameters['dataset_text_folder'], 'train.txt')
-    dataset_filepaths['valid'] = os.path.join(parameters['dataset_text_folder'], 'valid.txt')
-    dataset_filepaths['test']  = os.path.join(parameters['dataset_text_folder'], 'test.txt')
+    dataset_brat_folders = {}
+    for dataset_type in ['train', 'valid', 'test', 'deploy']:
+        dataset_filepaths[dataset_type] = os.path.join(parameters['dataset_text_folder'], '{0}.txt'.format(dataset_type))
+        dataset_brat_folders[dataset_type] = os.path.join(parameters['dataset_text_folder'], dataset_type)
 
-    return parameters, dataset_filepaths
+        # Conll file exists
+        if os.path.isfile(dataset_filepaths[dataset_type]) and os.path.getsize(dataset_filepaths[dataset_type]) > 0:
+            # Brat text files exist
+            if os.path.exists(dataset_brat_folders[dataset_type]) and len(glob.glob(os.path.join(dataset_brat_folders[dataset_type], '*.txt'))) > 0:
+
+                # Check compatibility between conll and brat files
+                brat_to_conll.check_brat_annotation_and_text_compatibility(dataset_brat_folders[dataset_type])
+                conll_to_brat.check_compatibility_between_conll_and_brat_text(dataset_filepaths[dataset_type], dataset_brat_folders[dataset_type])
+
+            # Brat text files do not exist
+            else:
+
+                # Populate brat text and annotation files based on conll file
+                conll_to_brat.conll_to_brat(dataset_filepaths[dataset_type], dataset_brat_folders[dataset_type], dataset_brat_folders[dataset_type])
+
+        # Conll file does not exist
+        else:
+
+            # Brat text files exist
+            if os.path.exists(dataset_brat_folders[dataset_type]) and len(glob.glob(os.path.join(dataset_brat_folders[dataset_type], '*.txt'))) > 0:
+                # Populate conll file based on brat files
+                brat_to_conll.brat_to_conll(dataset_brat_folders[dataset_type], dataset_filepaths[dataset_type])
+
+            # Brat text files do not exist
+            else:
+                del dataset_filepaths[dataset_type]
+                del dataset_brat_folders[dataset_type]
+
+    return dataset_filepaths, dataset_brat_folders
+
+def check_parameter_compatiblity(parameters, dataset_filepaths):
+    # Check mode of operation
+    if parameters['train_model']:
+        if 'train' not in dataset_filepaths or 'valid' not in dataset_filepaths:
+            raise IOError("If train_model is set to True, both train and valid set must exist in the specified dataset folder: {0}".format(parameters['dataset_text_folder']))
+    elif parameters['use_pretrained_model']:
+        if 'train' in dataset_filepaths and 'valid' in dataset_filepaths:
+            print("WARNING: train and valid set exist in the specified dataset folder, but train_model is set to FALSE: {0}".format(parameters['dataset_text_folder']))
+        if 'test' not in dataset_filepaths and 'deploy' not in dataset_filepaths:
+            raise IOError("For prediction mode, either test set and deploy set must exist in the specified dataset folder: {0}".format(parameters['dataset_text_folder']))
+    else: #if not parameters['train_model'] and not parameters['use_pretrained_model']:
+        raise ValueError('At least one of train_model and use_pretrained_model must be set to True.')
 
 def main():
 
-    parameters, dataset_filepaths = load_parameters()
+    parameters, conf_parameters = load_parameters()
+    dataset_filepaths, dataset_brat_folders = get_valid_dataset_filepaths(parameters)
+    check_parameter_compatiblity(parameters, dataset_filepaths)
 
     # Load dataset
-    dataset = ds.Dataset()
+    dataset = ds.Dataset(verbose=parameters['verbose'], debug=parameters['debug'])
     dataset.load_dataset(dataset_filepaths, parameters)
 
     # Create graph and session
     with tf.Graph().as_default():
         session_conf = tf.ConfigProto(
-          device_count={'CPU': 1, 'GPU': 1},
-          allow_soft_placement=True, #  automatically choose an existing and supported device to run the operations in case the specified one doesn't exist
-          log_device_placement=False
-          )
+            intra_op_parallelism_threads=parameters['number_of_cpu_threads'],
+            inter_op_parallelism_threads=parameters['number_of_cpu_threads'],
+            device_count={'CPU': 1, 'GPU': parameters['number_of_gpus']},
+            allow_soft_placement=True, # automatically choose an existing and supported device to run the operations in case the specified one doesn't exist
+            log_device_placement=False
+            )
 
         sess = tf.Session(config=session_conf)
 
@@ -109,14 +153,15 @@ def main():
             utils.create_folder_if_not_exists(stats_graph_folder)
             model_folder = os.path.join(stats_graph_folder, 'model')
             utils.create_folder_if_not_exists(model_folder)
+            with open(os.path.join(model_folder, 'parameters.ini'), 'w') as parameters_file:
+                conf_parameters.write(parameters_file)
             tensorboard_log_folder = os.path.join(stats_graph_folder, 'tensorboard_logs')
             utils.create_folder_if_not_exists(tensorboard_log_folder)
             tensorboard_log_folders = {}
-            for dataset_type in ['train', 'valid', 'test']:
+            for dataset_type in dataset_filepaths.keys():
                 tensorboard_log_folders[dataset_type] = os.path.join(stats_graph_folder, 'tensorboard_logs', dataset_type)
                 utils.create_folder_if_not_exists(tensorboard_log_folders[dataset_type])
-
-            pickle.dump(dataset, open(os.path.join(stats_graph_folder, 'dataset.pickle'), 'wb'))
+            pickle.dump(dataset, open(os.path.join(model_folder, 'dataset.pickle'), 'wb'))
 
             # Instantiate the model
             # graph initialization should be before FileWriter, otherwise the graph will not appear in TensorBoard
@@ -124,7 +169,7 @@ def main():
 
             # Instantiate the writers for TensorBoard
             writers = {}
-            for dataset_type in ['train', 'valid', 'test']:
+            for dataset_type in dataset_filepaths.keys():
                 writers[dataset_type] = tf.summary.FileWriter(tensorboard_log_folders[dataset_type], graph=sess.graph)
             embedding_writer = tf.summary.FileWriter(model_folder) # embedding_writer has to write in model_folder, otherwise TensorBoard won't be able to view embeddings
 
@@ -136,20 +181,18 @@ def main():
 
             tensorboard_character_embeddings = embeddings_projector_config.embeddings.add()
             tensorboard_character_embeddings.tensor_name = model.character_embedding_weights.name
-            character_list_file_path = os.path.join(model_folder, 'tensorboard_metadata_characters.tsv') #  'metadata.tsv'
+            character_list_file_path = os.path.join(model_folder, 'tensorboard_metadata_characters.tsv')
             tensorboard_character_embeddings.metadata_path = os.path.relpath(character_list_file_path, '..')
 
             projector.visualize_embeddings(embedding_writer, embeddings_projector_config)
 
             # Write metadata for TensorBoard embeddings
-            token_list_file = open(token_list_file_path,'w')
+            token_list_file = codecs.open(token_list_file_path,'w', 'UTF-8')
             for token_index in range(dataset.vocabulary_size):
                 token_list_file.write('{0}\n'.format(dataset.index_to_token[token_index]))
             token_list_file.close()
 
-            character_list_file = open(character_list_file_path,'w')
-            print('len(dataset.character_to_index): {0}'.format(len(dataset.character_to_index)))
-            print('len(dataset.index_to_character): {0}'.format(len(dataset.index_to_character)))
+            character_list_file = codecs.open(character_list_file_path,'w', 'UTF-8')
             for character_index in range(dataset.alphabet_size):
                 if character_index == dataset.PADDING_CHARACTER_INDEX:
                     character_list_file.write('PADDING\n')
@@ -160,71 +203,67 @@ def main():
 
             # Initialize the model
             sess.run(tf.global_variables_initializer())
-            model.load_pretrained_token_embeddings(sess, dataset, parameters)
-
+            if not parameters['use_pretrained_model']:
+                model.load_pretrained_token_embeddings(sess, dataset, parameters)
 
             # Start training + evaluation loop. Each iteration corresponds to 1 epoch.
-            step = 0
             bad_counter = 0 # number of epochs with no improvement on the validation test in terms of F1-score
             previous_best_valid_f1_score = 0
-            transition_params_trained = np.random.rand(len(dataset.unique_labels),len(dataset.unique_labels))
+            transition_params_trained = np.random.rand(len(dataset.unique_labels)+2,len(dataset.unique_labels)+2)
             model_saver = tf.train.Saver(max_to_keep=parameters['maximum_number_of_epochs'])  # defaults to saving all variables
             epoch_number = -1
             try:
                 while True:
+                    step = 0
                     epoch_number += 1
-                    #epoch_number = math.floor(step / len(dataset.token_indices['train']))
-                    print('\nStarting epoch {0}'.format(epoch_number), end='')
+                    print('\nStarting epoch {0}'.format(epoch_number))
 
                     epoch_start_time = time.time()
-                    #print('step: {0}'.format(step))
 
-                    # Train model: loop over all sequences of training set with shuffling
-                    sequence_numbers=list(range(len(dataset.token_indices['train'])))
-                    random.shuffle(sequence_numbers)
-                    for sequence_number in sequence_numbers:
-                        transition_params_trained = train.train_step(sess, dataset, sequence_number, model, transition_params_trained, parameters)
-                        step += 1
-                        if step % 100 == 0:
-                            print('.',end='', flush=True)
-                            #break
-                    print('.', flush=True)
-                    #print('step: {0}'.format(step))
-
-                    # Predict labels using trained model
-                    y_pred = {}
-                    y_true  = {}
-                    output_filepaths = {}
-                    for dataset_type in ['train', 'valid', 'test']:
-                        #print('dataset_type:     {0}'.format(dataset_type))
-                        prediction_output = train.prediction_step(sess, dataset, dataset_type, model, transition_params_trained,
-                                                                  step, stats_graph_folder, epoch_number, parameters)
-                        y_pred[dataset_type], y_true[dataset_type], output_filepaths[dataset_type] = prediction_output
-#                         model_options = None
+                    if parameters['use_pretrained_model'] and epoch_number == 0:
+                        # Restore pretrained model parameters
+                        transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver)
+                    elif epoch_number != 0:
+                        # Train model: loop over all sequences of training set with shuffling
+                        sequence_numbers=list(range(len(dataset.token_indices['train'])))
+                        random.shuffle(sequence_numbers)
+                        for sequence_number in sequence_numbers:
+                            transition_params_trained = train.train_step(sess, dataset, sequence_number, model, transition_params_trained, parameters)
+                            step += 1
+                            if step % 10 == 0:
+                                print('Training {0:.2f}% done'.format(step/len(sequence_numbers)*100), end='\r', flush=True)
 
                     epoch_elapsed_training_time = time.time() - epoch_start_time
-                    print('epoch_elapsed_training_time: {0:.2f} seconds'.format(epoch_elapsed_training_time))
+                    print('Training completed in {0:.2f} seconds'.format(epoch_elapsed_training_time), flush=True)
 
-                    results['execution_details']['num_epochs'] = epoch_number
+                    y_pred, y_true, output_filepaths = train.predict_labels(sess, model, transition_params_trained, parameters, dataset, epoch_number, stats_graph_folder, dataset_filepaths)
 
                     # Evaluate model: save and plot results
                     evaluate.evaluate_model(results, dataset, y_pred, y_true, stats_graph_folder, epoch_number, epoch_start_time, output_filepaths, parameters)
 
+                    if parameters['use_pretrained_model'] and not parameters['train_model']:
+                        conll_to_brat.output_brat(output_filepaths, dataset_brat_folders, stats_graph_folder)
+                        break
+
                     # Save model
-                    model_saver.save(sess, os.path.join(model_folder, 'model_{0:05d}.ckpt'.format(epoch_number)))#, global_step, latest_filename, meta_graph_suffix, write_meta_graph, write_state)
+                    model_saver.save(sess, os.path.join(model_folder, 'model_{0:05d}.ckpt'.format(epoch_number)))
 
                     # Save TensorBoard logs
                     summary = sess.run(model.summary_op, feed_dict=None)
                     writers['train'].add_summary(summary, epoch_number)
+                    writers['train'].flush()
+                    utils.copytree(writers['train'].get_logdir(), model_folder)
+
 
                     # Early stop
                     valid_f1_score = results['epoch'][epoch_number][0]['valid']['f1_score']['micro']
                     if  valid_f1_score > previous_best_valid_f1_score:
                         bad_counter = 0
                         previous_best_valid_f1_score = valid_f1_score
+                        conll_to_brat.output_brat(output_filepaths, dataset_brat_folders, stats_graph_folder, overwrite=True)
                     else:
                         bad_counter += 1
-
+                    print("The last {0} epochs have not shown improvements on the validation set.".format(bad_counter))
 
                     if bad_counter > parameters['patience']:
                         print('Early Stop!')
@@ -233,11 +272,9 @@ def main():
 
                     if epoch_number > parameters['maximum_number_of_epochs']: break
 
-#                     break # debugging
 
             except KeyboardInterrupt:
                 results['execution_details']['keyboard_interrupt'] = True
-        #         assess_model.save_results(results, stats_graph_folder)
                 print('Training interrupted')
 
             print('Finishing the experiment')
@@ -250,5 +287,6 @@ def main():
 
 
 if __name__ == "__main__":
-    while True:
-        main()
+    main()
+
+

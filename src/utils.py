@@ -1,13 +1,12 @@
 '''
 Miscellaneous utility functions
 '''
-
 import collections
 import operator
 import os
 import time
 import datetime
-import platform
+import shutil
 
 def order_dictionary(dictionary, mode, reverse=False):
     '''
@@ -24,7 +23,13 @@ def order_dictionary(dictionary, mode, reverse=False):
         return collections.OrderedDict(sorted(dictionary.items(),
                                               key=operator.itemgetter(1),
                                               reverse=reverse))
-
+    elif mode =='key_value':
+        return collections.OrderedDict(sorted(dictionary.items(),
+                                              reverse=reverse))
+    elif mode =='value_key':
+        return collections.OrderedDict(sorted(dictionary.items(),
+                                              key=lambda x: (x[1], x[0]),
+                                              reverse=reverse))
     else:
         raise ValueError("Unknown mode. Should be 'key' or 'value'")
 
@@ -40,8 +45,6 @@ def reverse_dictionary(dictionary):
     else:
         return {v: k for k, v in dictionary.items()}
 
-
-
 def merge_dictionaries(*dict_args):
     '''
     http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression
@@ -53,7 +56,6 @@ def merge_dictionaries(*dict_args):
         result.update(dictionary)
     return result
 
-
 def pad_list(old_list, padding_size, padding_value):
     '''
     http://stackoverflow.com/questions/3438756/some-built-in-to-pad-a-list-in-python
@@ -62,7 +64,6 @@ def pad_list(old_list, padding_size, padding_value):
     assert padding_size >= len(old_list)
     return old_list + [padding_value] * (padding_size-len(old_list))
 
-
 def get_basename_without_extension(filepath):
     '''
     Getting the basename of the filepath without the extension
@@ -70,12 +71,12 @@ def get_basename_without_extension(filepath):
     '''
     return os.path.basename(os.path.splitext(filepath)[0])
 
-def create_folder_if_not_exists(dir):
+def create_folder_if_not_exists(directory):
     '''
     Create the folder if it doesn't exist already.
     '''
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def get_current_milliseconds():
     '''
@@ -105,29 +106,14 @@ def convert_configparser_to_dictionary(config):
     return my_config_parser_dict
 
 
-'''
-# http://stackoverflow.com/questions/42257015/how-can-i-list-all-tensorflow-variables-a-node-depends-on
-# computation flows from parents to children
-def parents(op):
-  return set(input.op for input in op.inputs)
-
-def children(op):
-  return set(op for out in op.outputs for op in out.consumers())
-
-def get_graph():
-  """Creates dictionary {node: {child1, child2, ..},..} for current
-  TensorFlow graph. Result is compatible with networkx/toposort"""
-  print('get_graph')
-  ops = tf.get_default_graph().get_operations()
-  return {op: children(op) for op in ops}
-
-
-def print_tf_graph(graph):
-  """Prints tensorflow graph in dictionary form."""
-  for node in graph:
-    for child in graph[node]:
-      print("%s -> %s" % (node.name, child.name))
-'''
-
-# if __name__ == '__main__':
-#     print(get_current_time_in_miliseconds())
+def copytree(src, dst, symlinks=False, ignore=None):
+    '''
+    http://stackoverflow.com/questions/1868714/how-do-i-copy-an-entire-directory-of-files-into-an-existing-directory-using-pyth
+    '''
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
