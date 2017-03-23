@@ -17,6 +17,11 @@ sudo pip3 install tensorflow
 # To install a few more packages which NeuroNER depends on:
 sudo pip3 install -U networkx matplotlib scikit-learn scipy
 
+# Installing spaCy
+sudo apt-get install -y build-essential python3.5-dev
+sudo pip3 install -U spacy
+sudo python3.5 -m spacy download en
+
 # To install NeuroNER:
 wget https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip
 sudo apt-get install -y unzip
