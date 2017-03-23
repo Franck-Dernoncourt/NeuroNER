@@ -9,17 +9,16 @@ To install TensorFlow:
 ```
 # For CPU support (no GPU support):
 sudo pip3 install tensorflow
-# For GPU support: 
+# For GPU support:
 sudo pip3 install tensorflow-gpu
 ```
 
-Note that for GPU support, [GPU requirements for Tensorflow](https://www.tensorflow.org/install/install_mac) must be satisfied. 
+Note that for GPU support, [GPU requirements for Tensorflow](https://www.tensorflow.org/install/install_mac) must be satisfied.
 
 To install a few more packages which NeuroNER depends on:
 
 ```
-sudo pip3 install -U networkx matplotlib scikit-learn scipy
-sudo pip3 install -U spacy
+sudo pip3 install -U networkx matplotlib scikit-learn scipy spacy
 python3.5 -m spacy download en
 ```
 

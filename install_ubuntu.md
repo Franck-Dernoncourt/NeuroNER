@@ -1,5 +1,6 @@
 # Installing NeuroNER on Ubuntu
 
+
 ## Ubuntu 14.04 and 16.04
 
 If you use Ubuntu 14.04, you need to install Python 3.5 (by default Ubuntu 14.04 doesn't have Python 3.5, unlike Ubuntu 16.04), which you can do as follows:
@@ -10,10 +11,9 @@ sudo apt-get update
 sudo apt-get install -y python3.5
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python3.5 get-pip.py
-pip3 install --upgrade pip
-pip -V
 sudo mv  /usr/local/bin/pip /usr/local/bin/pip3
 sudo ln -s /usr/local/bin/pip2.7 /usr/local/bin/pip
+pip3 install --upgrade pip
 ```
 
 To install TensorFlow:
@@ -38,6 +38,11 @@ To install a few more packages which NeuroNER depends on:
 
 ```
 sudo pip3 install -U networkx matplotlib scikit-learn scipy
+
+# Installing SpaCy
+sudo apt-get install -y build-essential python3.5-dev
+sudo pip3 install -U spacy
+sudo python3.5 -m spacy download en
 ```
 
 To install BRAT (optional, you just need it if you want to easily change or view the annotations):
