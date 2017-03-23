@@ -28,7 +28,6 @@ To install BRAT (optional, you just need it if you want to easily change or view
 Installing brat:
 mkdir brat
 cd brat
-mkdir -p data work
 wget http://weaver.nlplab.org/~brat/releases/brat-v1.3_Crunchy_Frog.tar.gz
 tar xzf brat-v1.3_Crunchy_Frog.tar.gz
 cd brat-v1.3_Crunchy_Frog

@@ -6,8 +6,8 @@ This page gives step-by-step instructions to install and use NeuroNER. If you al
 
 Alternatively, you can use this [installation script](install_ubuntu.sh) for Ubuntu, which:
 
-1. Installs TensorFlow (CPU only), Python 3.5, and BRAT.
-2. Downloads the NeuroNER code as well as word embeddings.
+1. Installs TensorFlow (CPU only) and Python 3.5.
+2. Downloads the NeuroNER code as well as the word embeddings.
 3. Starts training on the CoNLL-2003 dataset (the F1-score on the test set should be around 0.90, i.e. on par with state-of-the-art systems).
 
 To use this script, run the following command from the terminal:
