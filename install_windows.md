@@ -10,7 +10,6 @@ Then, from the command prompt (make sure `pip` is connected to Python 3.5. You c
 
 ```
 pip install -U networkx matplotlib scikit-learn scipy
-pip install --upgrade tensorflow-gpu
 ```
 
 ## SpaCy
