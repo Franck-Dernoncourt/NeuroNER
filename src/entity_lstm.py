@@ -254,7 +254,7 @@ class EntityLSTM(object):
             elif parameters['check_for_lowercase'] and token.lower() in token_to_vector.keys():
                 initial_weights[dataset.token_to_index[token]] = token_to_vector[token.lower()]
                 number_of_token_lowercase_found += 1
-            elif parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token) in all_pretrained_tokens:
+            elif parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token) in token_to_vector.keys():
                 initial_weights[dataset.token_to_index[token]] = token_to_vector[re.sub('\d', '0', token)]
                 number_of_token_digits_replaced_with_zeros_found += 1
             elif parameters['check_for_lowercase'] and parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token.lower()) in token_to_vector.keys():
