@@ -165,7 +165,19 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
     # Get transition parameters
     transition_params_trained = sess.run(model.transition_parameters)
     
-    
+    if not parameters['reload_character_embeddings']:
+        sess.run(tf.variables_initializer([model.character_embedding_weights]))
+    if not parameters['reload_character_lstm']:
+        sess.run(tf.variables_initializer(model.character_lstm_variables))
+    if not parameters['reload_token_embeddings']:
+        sess.run(tf.variables_initializer([model.token_embedding_weights]))
+    if not parameters['reload_token_lstm']:
+        sess.run(tf.variables_initializer(model.token_lstm_variables))
+    if not parameters['reload_feedforward']:
+        sess.run(tf.variables_initializer(model.feedforward_variables))
+    if not parameters['reload_crf']:
+        sess.run(tf.variables_initializer(model.crf_variables))
+
     return transition_params_trained
 
 

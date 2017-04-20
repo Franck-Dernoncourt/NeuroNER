@@ -131,12 +131,10 @@ class Dataset(object):
             if iteration_number == self.UNK_TOKEN_INDEX: iteration_number += 1
 
             if parameters['remap_unknown_tokens_to_unk'] == 1 and \
-                token_count['train'][token] == 0 and \
-                (token not in all_pretrained_tokens and \
-                token.lower() not in all_pretrained_tokens and \
-                re.sub('\d', '0', token.lower()) not in all_pretrained_tokens) and \
+                (token_count['train'][token] == 0 or \
+                parameters['load_only_pretrained_token_embeddings']) and \
+                not is_token_in_pretrained_embeddings(token, all_pretrained_tokens, parameters) and \
                 token not in all_tokens_in_pretraining_dataset:
-
                 if self.verbose: print("token: {0}".format(token))
                 if self.verbose: print("token.lower(): {0}".format(token.lower()))
                 if self.verbose: print("re.sub('\d', '0', token.lower()): {0}".format(re.sub('\d', '0', token.lower())))

@@ -4,6 +4,7 @@ import codecs
 import re
 import time
 import utils_tf
+import utils_nlp
 
 def bidirectional_LSTM(input, hidden_state_dimension, initializer, sequence_length=None, output_sequence=True):
 
@@ -87,9 +88,10 @@ class EntityLSTM(object):
                 utils_tf.variable_summaries(self.character_embedding_weights)
 
             # Character LSTM layer
-            with tf.variable_scope('character_lstm'):
+            with tf.variable_scope('character_lstm') as vs:
                 character_lstm_output = bidirectional_LSTM(embedded_characters, parameters['character_lstm_hidden_state_dimension'], initializer,
                                                            sequence_length=self.input_token_lengths, output_sequence=False)
+                self.character_lstm_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
 
         # Token embedding layer
@@ -97,7 +99,8 @@ class EntityLSTM(object):
             self.token_embedding_weights = tf.get_variable(
                 "token_embedding_weights",
                 shape=[dataset.vocabulary_size, parameters['token_embedding_dimension']],
-                initializer=initializer)
+                initializer=initializer,
+                trainable=not parameters['freeze_token_embeddings'])
             embedded_tokens = tf.nn.embedding_lookup(self.token_embedding_weights, self.input_token_indices)
             utils_tf.variable_summaries(self.token_embedding_weights)
 
@@ -122,12 +125,13 @@ class EntityLSTM(object):
             if self.verbose: print("token_lstm_input_drop_expanded: {0}".format(token_lstm_input_drop_expanded))
 
         # Token LSTM layer
-        with tf.variable_scope('token_lstm'):
+        with tf.variable_scope('token_lstm') as vs:
             token_lstm_output = bidirectional_LSTM(token_lstm_input_drop_expanded, parameters['token_lstm_hidden_state_dimension'], initializer, output_sequence=True)
             token_lstm_output_squeezed = tf.squeeze(token_lstm_output, axis=0)
+            self.token_lstm_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
         # Needed only if Bidirectional LSTM is used for token level
-        with tf.variable_scope("feedforward_after_lstm"):
+        with tf.variable_scope("feedforward_after_lstm") as vs:
             W = tf.get_variable(
                 "W",
                 shape=[2 * parameters['token_lstm_hidden_state_dimension'], parameters['token_lstm_hidden_state_dimension']],
@@ -137,8 +141,9 @@ class EntityLSTM(object):
             outputs = tf.nn.tanh(outputs, name="output_after_tanh")
             utils_tf.variable_summaries(W)
             utils_tf.variable_summaries(b)
+            self.token_lstm_variables += tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
-        with tf.variable_scope("feedforward_before_crf"):
+        with tf.variable_scope("feedforward_before_crf") as vs:
             W = tf.get_variable(
                 "W",
                 shape=[parameters['token_lstm_hidden_state_dimension'], dataset.number_of_classes],
@@ -149,10 +154,11 @@ class EntityLSTM(object):
             self.predictions = tf.argmax(self.unary_scores, 1, name="predictions")
             utils_tf.variable_summaries(W)
             utils_tf.variable_summaries(b)
+            self.feedforward_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
         # CRF layer
         if parameters['use_crf']:
-            with tf.variable_scope("crf"):
+            with tf.variable_scope("crf") as vs:
                 # Add start and end tokens
                 small_score = -1000.0
                 large_score = 0.0
@@ -184,14 +190,18 @@ class EntityLSTM(object):
                     unary_scores_expanded, input_label_indices_flat_batch, sequence_lengths, transition_params=self.transition_parameters)
                 self.loss =  tf.reduce_mean(-log_likelihood, name='cross_entropy_mean_loss')
                 self.accuracy = tf.constant(1)
+                
+                self.crf_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
         # Do not use CRF layer
         else:
-            self.transition_parameters = tf.get_variable(
-                "transitions",
-                shape=[dataset.number_of_classes+2, dataset.number_of_classes+2],
-                initializer=initializer)
-            utils_tf.variable_summaries(self.transition_parameters)
+            with tf.variable_scope("crf") as vs:
+                self.transition_parameters = tf.get_variable(
+                    "transitions",
+                    shape=[dataset.number_of_classes+2, dataset.number_of_classes+2],
+                    initializer=initializer)
+                utils_tf.variable_summaries(self.transition_parameters)
+                self.crf_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
             # Calculate mean cross-entropy loss
             with tf.variable_scope("loss"):
@@ -229,43 +239,36 @@ class EntityLSTM(object):
         # Load embeddings
         start_time = time.time()
         print('Load token embeddings... ', end='', flush=True)
-        file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
-        count = -1
-        initial_weights = sess.run(self.token_embedding_weights.read_value())
-        token_to_vector = {}
-        for cur_line in file_input:
-            count += 1
-            #if count > 1000:break
-            cur_line = cur_line.strip()
-            cur_line = cur_line.split(' ')
-            if len(cur_line)==0:continue
-            token = cur_line[0]
-            vector =cur_line[1:]
-            token_to_vector[token] = vector
+        token_to_vector = utils_nlp.load_pretrained_token_embeddings(parameters)
 
+        initial_weights = sess.run(self.token_embedding_weights.read_value())
         number_of_loaded_word_vectors = 0
         number_of_token_original_case_found = 0
         number_of_token_lowercase_found = 0
-        number_of_token_lowercase_normalized_found = 0
+        number_of_token_digits_replaced_with_zeros_found = 0
+        number_of_token_lowercase_and_digits_replaced_with_zeros_found = 0
         for token in dataset.token_to_index.keys():
             if token in token_to_vector.keys():
                 initial_weights[dataset.token_to_index[token]] = token_to_vector[token]
                 number_of_token_original_case_found += 1
-            elif token.lower() in token_to_vector.keys():
+            elif parameters['check_for_lowercase'] and token.lower() in token_to_vector.keys():
                 initial_weights[dataset.token_to_index[token]] = token_to_vector[token.lower()]
                 number_of_token_lowercase_found += 1
-            elif re.sub('\d', '0', token.lower()) in token_to_vector.keys():
+            elif parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token) in all_pretrained_tokens:
+                initial_weights[dataset.token_to_index[token]] = token_to_vector[re.sub('\d', '0', token)]
+                number_of_token_digits_replaced_with_zeros_found += 1
+            elif parameters['check_for_lowercase'] and parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token.lower()) in token_to_vector.keys():
                 initial_weights[dataset.token_to_index[token]] = token_to_vector[re.sub('\d', '0', token.lower())]
-                number_of_token_lowercase_normalized_found += 1
+                number_of_token_lowercase_and_digits_replaced_with_zeros_found += 1
             else:
                 continue
             number_of_loaded_word_vectors += 1
-        file_input.close()
         elapsed_time = time.time() - start_time
         print('done ({0:.2f} seconds)'.format(elapsed_time))
         print("number_of_token_original_case_found: {0}".format(number_of_token_original_case_found))
         print("number_of_token_lowercase_found: {0}".format(number_of_token_lowercase_found))
-        print("number_of_token_lowercase_normalized_found: {0}".format(number_of_token_lowercase_normalized_found))
+        print("number_of_token_digits_replaced_with_zeros_found: {0}".format(number_of_token_digits_replaced_with_zeros_found))
+        print("number_of_token_lowercase_and_digits_replaced_with_zeros_found: {0}".format(number_of_token_lowercase_and_digits_replaced_with_zeros_found))
         print('number_of_loaded_word_vectors: {0}'.format(number_of_loaded_word_vectors))
         print("dataset.vocabulary_size: {0}".format(dataset.vocabulary_size))
         sess.run(self.token_embedding_weights.assign(initial_weights))

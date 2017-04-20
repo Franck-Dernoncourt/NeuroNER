@@ -54,7 +54,7 @@ def cm2inch(*tupl):
     else:
         return tuple(i/inch for i in tupl)
 
-def heatmap(AUC, title, xlabel, ylabel, xticklabels, yticklabels, figure_width=40, figure_height=20, correct_orientation=False, cmap='RdBu', fmt="%.2f", graph_filepath='', normalize=False):
+def heatmap(AUC, title, xlabel, ylabel, xticklabels, yticklabels, figure_width=40, figure_height=20, correct_orientation=False, cmap='RdBu', fmt="%.2f", graph_filepath='', normalize=False, remove_diagonal=False):
     '''
     Inspired by:
     - http://stackoverflow.com/a/16124677/395857
@@ -62,11 +62,23 @@ def heatmap(AUC, title, xlabel, ylabel, xticklabels, yticklabels, figure_width=4
     '''
     if normalize:
         AUC = sklearn.preprocessing.normalize(AUC, norm='l1', axis=1)
+        
+    if remove_diagonal:
+        matrix = np.copy(AUC)
+        np.fill_diagonal(matrix, 0)
+        if len(xticklabels)>2:
+            matrix[:,-1] = 0
+            matrix[-1, :] = 0
+        values= matrix.flatten()
+    else:
+        values = AUC.flatten()
+    vmin = values.min()
+    vmax = values.max()
 
     # Plot it out
     fig, ax = plt.subplots()
     #c = ax.pcolor(AUC, edgecolors='k', linestyle= 'dashed', linewidths=0.2, cmap='RdBu', vmin=0.0, vmax=1.0)
-    c = ax.pcolor(AUC, edgecolors='k', linestyle= 'dashed', linewidths=0.2, cmap=get_cmap())
+    c = ax.pcolor(AUC, edgecolors='k', linestyle= 'dashed', linewidths=0.2, cmap=get_cmap(), vmin=vmin, vmax=vmax)
 
     # put the major ticks at the middle of each cell
     ax.set_yticks(np.arange(AUC.shape[0]) + 0.5, minor=False)

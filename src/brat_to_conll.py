@@ -4,6 +4,7 @@ import glob
 import codecs
 import spacy
 import utils_nlp
+import utils
 
 
 def get_start_and_end_offset_of_token_from_spacy(token):
@@ -24,9 +25,47 @@ def get_sentences_and_tokens_from_spacy(text, spacy_nlp):
             token_dict['text'] = text[token_dict['start']:token_dict['end']]
             if token_dict['text'].strip() in ['\n', '\t', ' ', '']:
                 continue
+            # Make sure that the token text does not contain any space
+            if len(token_dict['text'].split(' ')) != 1:
+                print("WARNING: the text of the token contains space character, replaced with hyphen\n\t{0}\n\t{1}".format(token_dict['text'], 
+                                                                                                                           token_dict['text'].replace(' ', '-')))
+                token_dict['text'] = token_dict['text'].replace(' ', '-')
             sentence_tokens.append(token_dict)
         sentences.append(sentence_tokens)
     return sentences
+
+
+def get_entities_from_brat(text_filepath, annotation_filepath, verbose=False):
+    # load text
+    with codecs.open(text_filepath, 'r', 'UTF-8') as f:
+        text =f.read()
+    if verbose: print("text: {0}".format(text))
+
+    # parse annotation file
+    entities = []
+    with codecs.open(annotation_filepath, 'r', 'UTF-8') as f:
+        for line in f.read().splitlines():
+            anno = line.split()
+            id_anno = anno[0]
+            # parse entity
+            if id_anno[0] == 'T':
+                entity = {}
+                entity['id'] = id_anno
+                entity['type'] = anno[1]
+                entity['start'] = int(anno[2])
+                entity['end'] = int(anno[3])
+                entity['text'] = ' '.join(anno[4:])
+                if verbose:
+                    print("entity: {0}".format(entity))
+                # Check compatibility between brat text and anootation
+                if utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(text[entity['start']:entity['end']]) != \
+                    utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(entity['text']):
+                    print("Warning: brat text and annotation do not match.")
+                    print("\ttext: {0}".format(text[entity['start']:entity['end']]))
+                    print("\tanno: {0}".format(entity['text']))
+                # add to entitys data
+                entities.append(entity)
+    return text, entities
 
 def check_brat_annotation_and_text_compatibility(brat_folder):
     '''
@@ -38,37 +77,10 @@ def check_brat_annotation_and_text_compatibility(brat_folder):
     for text_filepath in text_filepaths:
         base_filename = os.path.basename(text_filepath).split('.')[0]
         annotation_filepath = os.path.join(os.path.dirname(text_filepath), base_filename + '.ann')
-        # create annotation file if it does not exist
+        # check if annotation file exists
         if not os.path.exists(annotation_filepath):
-            codecs.open(annotation_filepath, 'w', 'UTF-8').close()
-        with codecs.open(text_filepath, 'r', 'UTF-8') as f:
-            text =f.read()
-        # parse annotation file
-        entities = []
-        with codecs.open(annotation_filepath, 'r', 'UTF-8') as f:
-            for line in f.read().splitlines():
-                anno = line.split()
-                id_anno = anno[0]
-                # parse entity
-                if id_anno[0] == 'T':
-                    entity = {}
-                    entity['id'] = id_anno
-                    entity['type'] = anno[1]
-                    entity['start'] = int(anno[2])
-                    try:
-                        entity['end'] = int(anno[3])
-                    except:
-                        entity['end'] = int(anno[4])
-                        entity['text'] = ' '.join(anno[5:])
-                    else:
-                        entity['text'] = ' '.join(anno[4:])
-                    # Check compatibility between brat text and anootation
-#                     if text[entity['start']:entity['end']] != entity['text']:
-                    if utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(text[entity['start']:entity['end']]) != \
-                        utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(entity['text']):
-                        print("Warning: brat text and annotation do not match.")
-                        print("\ttext: {0}".format(text[entity['start']:entity['end']]))
-                        print("\tanno: {0}".format(entity['text']))
+            raise IOError("Annotation file does not exist: {0}".format(annotation_filepath))
+        text, entities = get_entities_from_brat(text_filepath, annotation_filepath)
     print("Done.")
 
 def brat_to_conll(input_folder, output_filepath):
@@ -89,40 +101,7 @@ def brat_to_conll(input_folder, output_filepath):
         if not os.path.exists(annotation_filepath):
             codecs.open(annotation_filepath, 'w', 'UTF-8').close()
 
-        # load text
-        with codecs.open(text_filepath, 'r', 'UTF-8') as f:
-            text =f.read()
-        if verbose: print("text: {0}".format(text))
-
-        # parse annotation file
-        entities = []
-        with codecs.open(annotation_filepath, 'r', 'UTF-8') as f:
-            for line in f.read().splitlines():
-                anno = line.split()
-                id_anno = anno[0]
-                # parse entity
-                if id_anno[0] == 'T':
-                    entity = {}
-                    entity['id'] = id_anno
-                    entity['type'] = anno[1]
-                    entity['start'] = int(anno[2])
-                    try:
-                        entity['end'] = int(anno[3])
-                    except:
-                        entity['end'] = int(anno[4])
-                        entity['text'] = ' '.join(anno[5:])
-                    else:
-                        entity['text'] = ' '.join(anno[4:])
-                    if verbose:
-                        print("entity: {0}".format(entity))
-                    # Check compatibility between brat text and anootation
-                    if utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(text[entity['start']:entity['end']]) != \
-                        utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(entity['text']):
-                        print("Warning: brat text and annotation do not match.")
-                        print("\ttext: {0}".format(text[entity['start']:entity['end']]))
-                        print("\tanno: {0}".format(entity['text']))
-                    # add to entitys data
-                    entities.append(entity)
+        text, entities = get_entities_from_brat(text_filepath, annotation_filepath)
 
         sentences = get_sentences_and_tokens_from_spacy(text, spacy_nlp)
         for sentence in sentences:

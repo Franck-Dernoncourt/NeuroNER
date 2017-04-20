@@ -30,7 +30,7 @@ def assess_model(y_pred, y_true, labels, target_names, labels_with_o, target_nam
     results['f1_score'] = {}
     for f1_average_style in ['weighted', 'micro', 'macro']:
         results['f1_score'][f1_average_style] = sklearn.metrics.f1_score(y_true, y_pred, average=f1_average_style, labels=labels)*100
-    results['f1_score']['per_label'] = sklearn.metrics.precision_recall_fscore_support(y_true, y_pred, average=None, labels=labels)[2].tolist()
+    results['f1_score']['per_label'] = [x*100 for x in sklearn.metrics.precision_recall_fscore_support(y_true, y_pred, average=None, labels=labels)[2].tolist()]
 
     confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred, labels=labels_with_o)
     results['confusion_matrix'] = confusion_matrix.tolist()
@@ -38,7 +38,8 @@ def assess_model(y_pred, y_true, labels, target_names, labels_with_o, target_nam
     xlabel = 'Predicted'
     ylabel = 'True'
     xticklabels = yticklabels = target_names_with_o
-    utils_plots.heatmap(confusion_matrix, title, xlabel, ylabel, xticklabels, yticklabels, figure_width=40, figure_height=20, correct_orientation=True, fmt="%d")
+    utils_plots.heatmap(confusion_matrix, title, xlabel, ylabel, xticklabels, yticklabels, figure_width=40, figure_height=20, correct_orientation=True, fmt="%d", 
+                        remove_diagonal=True)
     plt.savefig(os.path.join(stats_graph_folder, 'confusion_matrix_for_epoch_{0:04d}_in_{1}_{2}_evaluation.{3}'.format(epoch_number, dataset_type,
                                                                                                                        evaluation_mode, parameters['plot_format'])),
                 dpi=300, format=parameters['plot_format'], bbox_inches='tight')

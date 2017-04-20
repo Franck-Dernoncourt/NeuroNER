@@ -2,7 +2,7 @@
 Miscellaneous utility functions for natural language processing
 '''
 import codecs
-
+import re
 
 def load_tokens_from_pretrained_token_embeddings(parameters):
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
@@ -19,6 +19,29 @@ def load_tokens_from_pretrained_token_embeddings(parameters):
         number_of_loaded_word_vectors += 1
     file_input.close()
     return tokens
+
+def load_pretrained_token_embeddings(parameters):
+    file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
+    count = -1
+    token_to_vector = {}
+    for cur_line in file_input:
+        count += 1
+        #if count > 1000:break
+        cur_line = cur_line.strip()
+        cur_line = cur_line.split(' ')
+        if len(cur_line)==0:continue
+        token = cur_line[0]
+        vector =cur_line[1:]
+        token_to_vector[token] = vector
+    file_input.close()
+    return token_to_vector
+
+def is_token_in_pretrained_embeddings(token, all_pretrained_tokens, parameters):
+    return token in all_pretrained_tokens or \
+        parameters['check_for_lowercase'] and token.lower() in all_pretrained_tokens or \
+        parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token) in all_pretrained_tokens or \
+        parameters['check_for_lowercase'] and parameters['check_for_digits_replaced_with_zeros'] and re.sub('\d', '0', token.lower()) in all_pretrained_tokens
+
 
 def get_parsed_conll_output(conll_output_filepath):
     conll_output = [l.rstrip().replace('%','').replace(';','').replace(':', '').strip() for l in codecs.open(conll_output_filepath, 'r', 'utf8')]

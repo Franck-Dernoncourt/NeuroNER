@@ -3,6 +3,7 @@ import codecs
 import utils
 import glob
 import shutil
+import utils_nlp
 
 def generate_reference_text_file_for_conll(conll_filepath, text_folder):
     '''
@@ -110,7 +111,7 @@ def output_entities(brat_output_folder, previous_filename, entities, text_filepa
     with codecs.open(output_filepath, 'w', 'utf-8') as output_file:
         for i, entity in enumerate(entities):
             output_file.write('T{0}\t{1} {2} {3}\t{4}\n'.format(i+1, entity['label'], entity['start'], entity['end'], 
-                                                               text[entity['start']:entity['end']]))
+                                                           utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(text[entity['start']:entity['end']])))
     # Copy the corresponding text file
     if text_filepath != os.path.join(brat_output_folder, os.path.basename(text_filepath)):
         shutil.copy(text_filepath, brat_output_folder)
@@ -147,7 +148,6 @@ def conll_to_brat(conll_filepath, brat_original_folder, brat_output_folder, over
     entities = []
     entity = {}
     for line in conll_file:
-#         print("line: {0}".format(line))
         line = line.strip().split(' ')
         # New sentence
         if len(line) == 0 or len(line[0]) == 0 or '-DOCSTART-' in line[0]:
@@ -189,7 +189,10 @@ def conll_to_brat(conll_filepath, brat_original_folder, brat_output_folder, over
         token['start'] = int(line[2])
         token['end'] = int(line[3])
         # check that the token text matches the original
-        assert(token['text'] == text[token['start']:token['end']])
+        if token['text'] != text[token['start']:token['end']].replace(' ', '-'):
+            print("Warning: conll and brat text do not match.")
+            print("\tCONLL: {0}".format(token['text']))
+            print("\tBRAT : {0}".format(text[token['start']:token['end']]))
         token['label'] = label[2:]
     
         if label[:2] == 'B-':
@@ -203,9 +206,18 @@ def conll_to_brat(conll_filepath, brat_original_folder, brat_output_folder, over
         elif label[:2] == 'I-':
             # Entity continued
             if previous_token_label == token['label']:
-                # Update entity
-                entity['text'] = entity['text'] + ' ' + token['text']
-                entity['end'] = token['end']
+                # if there is no newline between the entity and the token
+                if '\n' not in text[entity['end']:token['start']]:
+                    # Update entity 
+                    entity['text'] = entity['text'] + ' ' + token['text']
+                    entity['end'] = token['end']
+                else: # newline between the entity and the token
+                    # End the previous entity
+                    if verbose: print("entity: {0}".format(entity))
+                    entities.append(entity)
+                    entity_id += 1
+                    # Start a new entity
+                    entity = token
             elif previous_token_label != 'O':
                 # TODO: count BI or II incompatibility
                 # End the previous entity
