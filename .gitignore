@@ -1,0 +1,8 @@
+
+*.md.html
+*.pyc
+*.prefs
+*.project
+*.pydevproject
+output/*
+data/*
