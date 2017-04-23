@@ -49,6 +49,7 @@ def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verb
     for k,v in nested_parameters.items():
         parameters.update(v)
     for k,v in parameters.items():
+        if ',' in v: v = random.choice(v.split(',')) # If the value is a list delimited with a comma, choose one element at random.
         if k in ['character_embedding_dimension','character_lstm_hidden_state_dimension','token_embedding_dimension',
                  'token_lstm_hidden_state_dimension','patience','maximum_number_of_epochs','maximum_training_time','number_of_cpu_threads','number_of_gpus']:
             parameters[k] = int(v)
