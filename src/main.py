@@ -49,13 +49,17 @@ def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verb
     for k,v in nested_parameters.items():
         parameters.update(v)
     for k,v in parameters.items():
-        if ',' in v: v = random.choice(v.split(',')) # If the value is a list delimited with a comma, choose one element at random.
+        # If the value is a list delimited with a comma, choose one element at random.
+        if ',' in v:
+            v = random.choice(v.split(','))
+            parameters[k] = v
+        # Ensure that each parameter is cast to the correct type
         if k in ['character_embedding_dimension','character_lstm_hidden_state_dimension','token_embedding_dimension',
                  'token_lstm_hidden_state_dimension','patience','maximum_number_of_epochs','maximum_training_time','number_of_cpu_threads','number_of_gpus']:
             parameters[k] = int(v)
-        if k in ['dropout_rate', 'learning_rate']:
+        elif k in ['dropout_rate', 'learning_rate']:
             parameters[k] = float(v)
-        if k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose',
+        elif k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose',
                  'reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf',
                  'check_for_lowercase', 'check_for_normalized', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
             parameters[k] = distutils.util.strtobool(v)
