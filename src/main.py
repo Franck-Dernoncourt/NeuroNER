@@ -31,6 +31,7 @@ from tensorflow.contrib.tensorboard.plugins import projector
 
 # http://stackoverflow.com/questions/42217532/tensorflow-version-1-0-0-rc2-on-windows-opkernel-op-bestsplits-device-typ
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+print('NeuroNER version: {0}'.format('1.0-dev'))
 print('TensorFlow version: {0}'.format(tf.__version__))
 
 import warnings
@@ -53,7 +54,7 @@ def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verb
             parameters[k] = int(v)
         if k in ['dropout_rate', 'learning_rate']:
             parameters[k] = float(v)
-        if k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose', 
+        if k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose',
                  'reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf',
                  'check_for_lowercase', 'check_for_normalized', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
             parameters[k] = distutils.util.strtobool(v)
@@ -109,7 +110,7 @@ def check_parameter_compatiblity(parameters, dataset_filepaths):
             raise IOError("For prediction mode, either test set and deploy set must exist in the specified dataset folder: {0}".format(parameters['dataset_text_folder']))
     else: #if not parameters['train_model'] and not parameters['use_pretrained_model']:
         raise ValueError('At least one of train_model and use_pretrained_model must be set to True.')
-    
+
     if parameters['use_pretrained_model']:
         if all([not parameters[s] for s in ['reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf']]):
             raise ValueError('If use_pretrained_model is set to True, at least one of reload_character_embeddings, reload_character_lstm, reload_token_embeddings, reload_token_lstm, reload_feedforward, reload_crf must be set to True.')
@@ -277,7 +278,7 @@ def main():
                         results['execution_details']['early_stop'] = True
                         break
 
-                    if epoch_number > parameters['maximum_number_of_epochs']: break
+                    if epoch_number >= parameters['maximum_number_of_epochs']: break
 
 
             except KeyboardInterrupt:
