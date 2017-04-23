@@ -78,7 +78,7 @@ class EntityLSTM(object):
             # Idea: reshape so that we have a tensor [number_of_token, max_token_length, token_embeddings_size], which we pass to the LSTM
 
             # Character embedding layer
-            with tf.variable_scope("character_embedding"):  
+            with tf.variable_scope("character_embedding"):
                 self.character_embedding_weights = tf.get_variable(
                     "character_embedding_weights",
                     shape=[dataset.alphabet_size, parameters['character_embedding_dimension']],
@@ -190,7 +190,7 @@ class EntityLSTM(object):
                     unary_scores_expanded, input_label_indices_flat_batch, sequence_lengths, transition_params=self.transition_parameters)
                 self.loss =  tf.reduce_mean(-log_likelihood, name='cross_entropy_mean_loss')
                 self.accuracy = tf.constant(1)
-                
+
                 self.crf_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=vs.name)
 
         # Do not use CRF layer
@@ -206,10 +206,10 @@ class EntityLSTM(object):
             # Calculate mean cross-entropy loss
             with tf.variable_scope("loss"):
                 losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.unary_scores, labels=self.input_label_indices_vector, name='softmax')
-                self.loss =  tf.reduce_mean(losses, name='cross_entropy_mean_loss') 
+                self.loss =  tf.reduce_mean(losses, name='cross_entropy_mean_loss')
             with tf.variable_scope("accuracy"):
                 correct_predictions = tf.equal(self.predictions, tf.argmax(self.input_label_indices_vector, 1))
-                self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
+                self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, 'float'), name='accuracy')
 
         self.define_training_procedure(parameters)
         self.summary_op = tf.summary.merge_all()
@@ -222,9 +222,9 @@ class EntityLSTM(object):
         elif parameters['optimizer'] == 'sgd':
             self.optimizer = tf.train.GradientDescentOptimizer(parameters['learning_rate'])
         elif parameters['optimizer'] == 'adadelta':
-            self.optimizer = tf.train.AdadeltaOptimizer(parameters['learning_rate'])        
+            self.optimizer = tf.train.AdadeltaOptimizer(parameters['learning_rate'])
         else:
-            raise ValueError("The lr_method parameter must be either adam or sgd.")
+            raise ValueError('The lr_method parameter must be either adadelta, adam or sgd.')
 
         grads_and_vars = self.optimizer.compute_gradients(self.loss)
 
@@ -292,7 +292,7 @@ class EntityLSTM(object):
             initial_weights[dataset.UNK_TOKEN_INDEX] = pretrained_embedding_weights[pretraining_dataset.UNK_TOKEN_INDEX]
         elif embedding_type == 'character':
             initial_weights[dataset.PADDING_CHARACTER_INDEX] = pretrained_embedding_weights[pretraining_dataset.PADDING_CHARACTER_INDEX]
-            
+
         number_of_loaded_vectors = 1
         for index, string in index_to_string.items():
             if index == dataset.UNK_TOKEN_INDEX:
