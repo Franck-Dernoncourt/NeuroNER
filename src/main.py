@@ -61,7 +61,7 @@ def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verb
             parameters[k] = float(v)
         elif k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose',
                  'reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf',
-                 'check_for_lowercase', 'check_for_normalized', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
+                 'check_for_lowercase', 'check_for_digits_replaced_with_zeros', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
             parameters[k] = distutils.util.strtobool(v)
     if verbose: pprint(parameters)
     return parameters, conf_parameters
