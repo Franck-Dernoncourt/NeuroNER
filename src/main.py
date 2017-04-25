@@ -18,6 +18,7 @@ import glob
 import brat_to_conll
 import conll_to_brat
 import codecs
+import utils_nlp
 matplotlib.use('Agg')
 import dataset as ds
 import time
@@ -100,7 +101,14 @@ def get_valid_dataset_filepaths(parameters):
             else:
                 del dataset_filepaths[dataset_type]
                 del dataset_brat_folders[dataset_type]
-
+                continue
+        
+        if parameters['tagging_format'] == 'bioes':
+            # Generate conll file with BIOES format
+            bioes_filepath = os.path.join(parameters['dataset_text_folder'], '{0}_bioes.txt'.format(dataset_type))
+            utils_nlp.convert_conll_from_bio_to_bioes(dataset_filepaths[dataset_type], bioes_filepath)
+            dataset_filepaths[dataset_type] = bioes_filepath
+            
     return dataset_filepaths, dataset_brat_folders
 
 def check_parameter_compatiblity(parameters, dataset_filepaths):

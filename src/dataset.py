@@ -161,9 +161,12 @@ class Dataset(object):
         for label in labels_without_bio:
             if label == 'O':
                 continue
-            begin_label = 'B-' + label
-            inside_label = 'I-' + label
-            for l in [begin_label, inside_label]:
+            if parameters['tagging_format'] == 'bioes':
+                prefixes = ['B-', 'I-', 'E-', 'S-']
+            else:
+                prefixes = ['B-', 'I-']
+            for prefix in prefixes:
+                l = prefix + label
                 if l not in label_count['all']:
                     label_count['all'][l] = 0
         label_count['all'] = utils.order_dictionary(label_count['all'], 'key', reverse = False)

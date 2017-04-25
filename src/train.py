@@ -8,6 +8,7 @@ import pickle
 import utils_tf
 from main import load_parameters
 import codecs
+import utils_nlp
 #from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 
 def train_step(sess, dataset, sequence_number, model, transition_params_trained, parameters):
@@ -29,7 +30,7 @@ def train_step(sess, dataset, sequence_number, model, transition_params_trained,
                     feed_dict)
     return transition_params_trained
 
-def prediction_step(sess, dataset, dataset_type, model, transition_params_trained, stats_graph_folder, epoch_number, parameters):
+def prediction_step(sess, dataset, dataset_type, model, transition_params_trained, stats_graph_folder, epoch_number, parameters, dataset_filepaths):
     if dataset_type == 'deploy':
         print('Predict labels for the {0} set'.format(dataset_type))
     else:
@@ -38,7 +39,7 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
     all_y_true = []
     output_filepath = os.path.join(stats_graph_folder, '{1:03d}_{0}.txt'.format(dataset_type,epoch_number))
     output_file = codecs.open(output_filepath, 'w', 'UTF-8')
-    original_conll_file = codecs.open(os.path.join(parameters['dataset_text_folder'], '{0}.txt'.format(dataset_type)), 'r', 'UTF-8')
+    original_conll_file = codecs.open(dataset_filepaths[dataset_type], 'r', 'UTF-8')
 
     for i in range(len(dataset.token_indices[dataset_type])):
         feed_dict = {
@@ -57,7 +58,12 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
 
         assert(len(predictions) == len(dataset.tokens[dataset_type][i]))
         output_string = ''
-        for prediction, token, gold_label in zip(predictions, dataset.tokens[dataset_type][i], dataset.labels[dataset_type][i]):
+        prediction_labels = [dataset.index_to_label[prediction] for prediction in predictions]
+        gold_labels = dataset.labels[dataset_type][i]
+        if parameters['tagging_format'] == 'bioes':
+            prediction_labels = utils_nlp.bioes_to_bio(prediction_labels)
+            gold_labels = utils_nlp.bioes_to_bio(gold_labels)
+        for prediction, token, gold_label in zip(prediction_labels, dataset.tokens[dataset_type][i], gold_labels):
             while True:
                 line = original_conll_file.readline()
                 split_line = line.strip().split(' ')
@@ -65,10 +71,12 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
                     continue
                 else:
                     token_original = split_line[0]
+                    if parameters['tagging_format'] == 'bioes':
+                        split_line.pop()
                     gold_label_original = split_line[-1]
                     assert(token == token_original and gold_label == gold_label_original) 
                     break            
-            split_line.append(dataset.index_to_label[prediction])
+            split_line.append(prediction)
             output_string += ' '.join(split_line) + '\n'
         output_file.write(output_string+'\n')
 
@@ -102,7 +110,7 @@ def predict_labels(sess, model, transition_params_trained, parameters, dataset, 
     for dataset_type in ['train', 'valid', 'test', 'deploy']:
         if dataset_type not in dataset_filepaths.keys():
             continue
-        prediction_output = prediction_step(sess, dataset, dataset_type, model, transition_params_trained, stats_graph_folder, epoch_number, parameters)
+        prediction_output = prediction_step(sess, dataset, dataset_type, model, transition_params_trained, stats_graph_folder, epoch_number, parameters, dataset_filepaths)
         y_pred[dataset_type], y_true[dataset_type], output_filepaths[dataset_type] = prediction_output
     return y_pred, y_true, output_filepaths
 
