@@ -57,7 +57,7 @@ def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verb
         if k in ['character_embedding_dimension','character_lstm_hidden_state_dimension','token_embedding_dimension',
                  'token_lstm_hidden_state_dimension','patience','maximum_number_of_epochs','maximum_training_time','number_of_cpu_threads','number_of_gpus']:
             parameters[k] = int(v)
-        elif k in ['dropout_rate', 'learning_rate']:
+        elif k in ['dropout_rate', 'learning_rate', 'gradient_clipping_value']:
             parameters[k] = float(v)
         elif k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose',
                  'reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf',
@@ -119,8 +119,10 @@ def check_parameter_compatiblity(parameters, dataset_filepaths):
     if parameters['use_pretrained_model']:
         if all([not parameters[s] for s in ['reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf']]):
             raise ValueError('If use_pretrained_model is set to True, at least one of reload_character_embeddings, reload_character_lstm, reload_token_embeddings, reload_token_lstm, reload_feedforward, reload_crf must be set to True.')
-
-
+    
+    if parameters['gradient_clipping_value'] < 0:
+        parameters['gradient_clipping_value'] = abs(parameters['gradient_clipping_value'])
+    
 def main():
 
     parameters, conf_parameters = load_parameters()

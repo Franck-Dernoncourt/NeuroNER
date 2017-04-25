@@ -227,7 +227,9 @@ class EntityLSTM(object):
             raise ValueError('The lr_method parameter must be either adadelta, adam or sgd.')
 
         grads_and_vars = self.optimizer.compute_gradients(self.loss)
-
+        if parameters['gradient_clipping_value']:
+            grads_and_vars = [(tf.clip_by_value(grad, -parameters['gradient_clipping_value'], parameters['gradient_clipping_value']), var) 
+                              for grad, var in grads_and_vars]
         # By defining a global_step variable and passing it to the optimizer we allow TensorFlow handle the counting of training steps for us.
         # The global step will be automatically incremented by one every time you execute train_op.
         self.train_op = self.optimizer.apply_gradients(grads_and_vars, global_step=self.global_step)
