@@ -105,7 +105,8 @@ def brat_to_conll(input_folder, output_filepath):
 
         sentences = get_sentences_and_tokens_from_spacy(text, spacy_nlp)
         for sentence in sentences:
-            inside=False
+            inside = False
+            previous_token_label = 'O'
             for token in sentence:
                 token['label'] = 'O'
                 for entity in entities:
@@ -122,12 +123,16 @@ def brat_to_conll(input_folder, output_filepath):
                     gold_label = 'O'
                     inside = False
                 elif inside:
-                    gold_label = 'I-{0}'.format(token['label'])
+                    if token['label'] == previous_token_label:
+                        gold_label = 'I-{0}'.format(token['label'])
+                    else:
+                        gold_label = 'B-{0}'.format(token['label'])
                 else:
                     inside = True
                     gold_label = 'B-{0}'.format(token['label'])
                 if token['end'] == entity['end']:
                     inside = False
+                previous_token_label = token['label']
                 if verbose: print('{0} {1} {2} {3} {4}\n'.format(token['text'], base_filename, token['start'], token['end'], gold_label))
                 output_file.write('{0} {1} {2} {3} {4}\n'.format(token['text'], base_filename, token['start'], token['end'], gold_label))
             if verbose: print('\n')
