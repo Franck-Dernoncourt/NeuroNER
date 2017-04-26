@@ -73,6 +73,7 @@ def get_valid_dataset_filepaths(parameters):
     for dataset_type in ['train', 'valid', 'test', 'deploy']:
         dataset_filepaths[dataset_type] = os.path.join(parameters['dataset_text_folder'], '{0}.txt'.format(dataset_type))
         dataset_brat_folders[dataset_type] = os.path.join(parameters['dataset_text_folder'], dataset_type)
+        dataset_compatible_with_brat_filepath = os.path.join(parameters['dataset_text_folder'], '{0}_compatible_with_brat.txt'.format(dataset_type))
 
         # Conll file exists
         if os.path.isfile(dataset_filepaths[dataset_type]) and os.path.getsize(dataset_filepaths[dataset_type]) > 0:
@@ -81,14 +82,17 @@ def get_valid_dataset_filepaths(parameters):
 
                 # Check compatibility between conll and brat files
                 brat_to_conll.check_brat_annotation_and_text_compatibility(dataset_brat_folders[dataset_type])
+                if os.path.exists(dataset_compatible_with_brat_filepath):
+                    dataset_filepaths[dataset_type] = dataset_compatible_with_brat_filepath
                 conll_to_brat.check_compatibility_between_conll_and_brat_text(dataset_filepaths[dataset_type], dataset_brat_folders[dataset_type])
 
             # Brat text files do not exist
             else:
 
                 # Populate brat text and annotation files based on conll file
-                conll_to_brat.conll_to_brat(dataset_filepaths[dataset_type], dataset_brat_folders[dataset_type], dataset_brat_folders[dataset_type])
-
+                conll_to_brat.conll_to_brat(dataset_filepaths[dataset_type], dataset_compatible_with_brat_filepath, dataset_brat_folders[dataset_type], dataset_brat_folders[dataset_type])
+                dataset_filepaths[dataset_type] = dataset_compatible_with_brat_filepath
+                
         # Conll file does not exist
         else:
 
