@@ -4,6 +4,7 @@ Miscellaneous utility functions for natural language processing
 import codecs
 import re
 import utils
+import os
 
 def load_tokens_from_pretrained_token_embeddings(parameters):
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
@@ -123,7 +124,43 @@ def bioes_to_bio(labels):
         previous_label_without_bio = label_without_bio
     return new_labels
                 
-            
+
+def check_bio_bioes_compatibility(labels_bio, labels_bioes):
+    if labels_bioes == []:
+        return True
+    new_labels_bio = bioes_to_bio(labels_bioes)
+    flag = True
+    if new_labels_bio != labels_bio:
+        print("Not valid.")
+        flag = False 
+    del labels_bio[:]
+    del labels_bioes[:]
+    return flag
+
+def check_validity_of_conll_bioes(bioes_filepath):
+    dataset_type = utils.get_basename_without_extension(bioes_filepath).split('_')[0]
+    print("Checking validity of CONLL BIOES format... ".format(dataset_type), end='')
+
+    input_conll_file = codecs.open(bioes_filepath, 'r', 'UTF-8')
+    labels_bioes = []
+    labels_bio = []
+    for line in input_conll_file:
+        split_line = line.strip().split(' ')
+        # New sentence
+        if len(split_line) == 0 or len(split_line[0]) == 0 or '-DOCSTART-' in split_line[0]:
+            if check_bio_bioes_compatibility(labels_bio, labels_bioes):
+                continue
+            return False
+        label_bioes = split_line[-1]    
+        label_bio = split_line[-2]    
+        labels_bioes.append(label_bioes)
+        labels_bio.append(label_bio)
+    input_conll_file.close()
+    if check_bio_bioes_compatibility(labels_bio, labels_bioes):
+        print("Done.")
+        return True
+    return False
+             
 def output_conll_lines_with_bioes(split_lines, labels, output_conll_file):
     '''
     Helper function for convert_conll_from_bio_to_bioes
@@ -137,10 +174,13 @@ def output_conll_lines_with_bioes(split_lines, labels, output_conll_file):
     del labels[:]
     del split_lines[:]
 
+
 def convert_conll_from_bio_to_bioes(input_conll_filepath, output_conll_filepath):
-    
+    if os.path.exists(output_conll_filepath):
+        if check_validity_of_conll_bioes(output_conll_filepath):
+            return
     dataset_type = utils.get_basename_without_extension(input_conll_filepath).split('_')[0]
-    print("Converting CONLL from BIO to BIOES scheme... ".format(dataset_type), end='')
+    print("Converting CONLL from BIO to BIOES format... ".format(dataset_type), end='')
     input_conll_file = codecs.open(input_conll_filepath, 'r', 'UTF-8')
     output_conll_file = codecs.open(output_conll_filepath, 'w', 'UTF-8')
 
@@ -161,4 +201,3 @@ def convert_conll_from_bio_to_bioes(input_conll_filepath, output_conll_filepath)
     input_conll_file.close()
     output_conll_file.close()
     print("Done.")
-    
