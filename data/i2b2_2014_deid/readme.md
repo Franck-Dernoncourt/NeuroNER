@@ -26,7 +26,7 @@ One may use the Python script [`xml_to_brat.py`](xml_to_brat.py) to convert the 
                5 Dir(s)   3,479,998,464 bytes free
 ```
 
-Once the i2b2 2014 de-identification dataset is converted into the BRAT format, NeuroNER can be trained on it by specifying the following in the [`../../src/parameters.ini`](src/parameters.ini) configuration file.
+Once the i2b2 2014 de-identification dataset is converted into the BRAT format, NeuroNER can be trained on it by specifying the following in the [`../../src/parameters.ini`](../../src/parameters.ini) configuration file.
 
 ```
 dataset_text_folder = ../data/i2b2_2014_deid
@@ -35,5 +35,5 @@ dataset_text_folder = ../data/i2b2_2014_deid
 
 If you use the i2b2 2014 de-identification dataset, please cite as:
 
- - Stubbs A, Uzuner O. (2015). "[Annotating longitudinal clinical narratives for de-identification: The 2014 i2b2/UTHealth corpus](http://www.ncbi.nlm.nih.gov/pubmed/26319540.)". J Biomed Inform. 2015 Aug 28. pii: S1532-0464(15)00182-3. DOI: 10.1016/j.jbi.2015.07.020.
- - Stubbs A, Kotfila C, Uzuner O. (2015). "[Automated systems for the de-identification of longitudinal clinical narratives: Overview of 2014 i2b2/UTHealth shared task Track 1](http://www.ncbi.nlm.nih.gov/pubmed/26225918)". J Biomed Inform. 2015 Jul 28. pii: S1532-0464(15)00117-3. DOI: 10.1016/j.jbi.2015.06.007.
+ - Stubbs A, Uzuner O. (2015). "[Annotating longitudinal clinical narratives for de-identification: The 2014 i2b2/UTHealth corpus](http://www.ncbi.nlm.nih.gov/pubmed/26319540.)". J Biomed Inform. 2015 Aug 28. PII: S1532-0464(15)00182-3. DOI: 10.1016/j.jbi.2015.07.020.
+ - Stubbs A, Kotfila C, Uzuner O. (2015). "[Automated systems for the de-identification of longitudinal clinical narratives: Overview of 2014 i2b2/UTHealth shared task Track 1](http://www.ncbi.nlm.nih.gov/pubmed/26225918)". J Biomed Inform. 2015 Jul 28. PII: S1532-0464(15)00117-3. DOI: 10.1016/j.jbi.2015.06.007.
