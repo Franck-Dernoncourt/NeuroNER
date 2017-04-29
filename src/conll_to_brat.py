@@ -94,6 +94,8 @@ def check_compatibility_between_conll_and_brat_text(conll_filepath, brat_folder)
             print("Warning: conll and brat text do not match.")
             print("\tCONLL: {0}".format(token['text']))
             print("\tBRAT : {0}".format(text[token['start']:token['end']]))
+            if token['text'] != text[token['start']:token['end']].replace(' ', '-'):
+                raise AssertionError("CONLL and BRAT files are incompatible.")
     
     print("Done.")
 
