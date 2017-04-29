@@ -15,7 +15,7 @@ sudo ln -s /usr/local/bin/pip2.7 /usr/local/bin/pip
 sudo pip3 install tensorflow
 
 # To install a few more packages which NeuroNER depends on:
-sudo pip3 install -U networkx matplotlib scikit-learn scipy
+sudo pip3 install -U networkx matplotlib scikit-learn scipy pycorenlp
 
 # Installing spaCy
 sudo apt-get install -y build-essential python3.5-dev

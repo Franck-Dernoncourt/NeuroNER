@@ -18,7 +18,7 @@ Note that for GPU support, [GPU requirements for Tensorflow](https://www.tensorf
 To install a few more packages which NeuroNER depends on:
 
 ```
-sudo pip3 install -U networkx matplotlib scikit-learn scipy spacy
+sudo pip3 install -U networkx matplotlib scikit-learn scipy spacy pycorenlp
 python3.5 -m spacy download en
 ```
 

@@ -9,7 +9,7 @@ First, install Python 3.5 and TensorFlow following these instructions: [How to i
 Then, from the command prompt (make sure `pip` is connected to Python 3.5. You can verify it by running `pip -V`):
 
 ```
-pip install -U networkx matplotlib scikit-learn scipy
+pip install -U networkx matplotlib scikit-learn scipy pycorenlp
 ```
 
 ## SpaCy
