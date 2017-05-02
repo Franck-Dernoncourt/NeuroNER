@@ -102,7 +102,7 @@ def get_valid_dataset_filepaths(parameters):
                     conll_to_brat.check_compatibility_between_conll_and_brat_text(dataset_filepath_for_tokenizer, dataset_brat_folders[dataset_type])
                 else:
                     # Populate conll file based on brat files
-                    brat_to_conll.brat_to_conll(dataset_brat_folders[dataset_type], dataset_filepath_for_tokenizer, parameters['tokenizer'])
+                    brat_to_conll.brat_to_conll(dataset_brat_folders[dataset_type], dataset_filepath_for_tokenizer, parameters['tokenizer'], parameters['spacylanguage'])
                 dataset_filepaths[dataset_type] = dataset_filepath_for_tokenizer
 
             # Brat text files do not exist
