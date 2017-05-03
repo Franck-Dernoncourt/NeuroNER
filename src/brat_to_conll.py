@@ -115,13 +115,13 @@ def check_brat_annotation_and_text_compatibility(brat_folder):
         text, entities = get_entities_from_brat(text_filepath, annotation_filepath)
     print("Done.")
 
-def brat_to_conll(input_folder, output_filepath, tokenizer):
+def brat_to_conll(input_folder, output_filepath, tokenizer, language):
     '''
     Assumes '.txt' and '.ann' files are in the input_folder.
     Checks for the compatibility between .txt and .ann at the same time.
     '''
     if tokenizer == 'spacy':
-        spacy_nlp = spacy.load('en')
+        spacy_nlp = spacy.load(language)
     elif tokenizer == 'stanford':
         core_nlp = StanfordCoreNLP('http://localhost:{0}'.format(9000))
     else:
