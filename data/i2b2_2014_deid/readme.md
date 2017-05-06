@@ -1,4 +1,4 @@
-The i2b2 2014 de-identification dataset can be downloaded at https://www.i2b2.org/NLP/DataSets/Download.php, section "2014 De-identification and Heart Disease Risk Factors Challenge" (a data use agreement needs to be signed, which prevents us from directly providing the dataset with NeuroNER).
+The i2b2 2014 de-identification dataset can be downloaded at https://www.i2b2.org/NLP/DataSets/Download.php, section "2014 De-identification and Heart Disease Risk Factors Challenge". A data use agreement needs to be signed, which prevents us from directly providing the dataset with NeuroNER. You can send the completed data use agreement by email (schurchill@partners.org) or fax (617-525-4491; https://faxzero.com allows to send faxes free of charge).
 
 The three following archive files need to be downloaded:
 
