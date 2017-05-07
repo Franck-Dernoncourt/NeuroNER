@@ -2,6 +2,16 @@
 
 (tested on Windows 7 SP1 64-bit)
 
+## Table of Contents
+
+<!-- toc -->
+
+- [Python 3.5 and TensorFlow](#python-35-and-tensorflow)
+- [SpaCy](#spacy)
+- [Perl](#perl)
+- [TensorBoard](#tensorboard)
+
+<!-- tocstop -->
 
 ## Python 3.5 and TensorFlow
 First, install Python 3.5 and TensorFlow following these instructions: [How to install TensorFlow on Windows?](http://stackoverflow.com/a/39902815/395857)

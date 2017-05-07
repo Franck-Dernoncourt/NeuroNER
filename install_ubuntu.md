@@ -1,5 +1,12 @@
 # Installing NeuroNER on Ubuntu
 
+## Table of Contents
+
+<!-- toc -->
+
+- [Ubuntu 14.04 and 16.04](#ubuntu-1404-and-1604)
+
+<!-- tocstop -->
 
 ## Ubuntu 14.04 and 16.04
 

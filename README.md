@@ -4,6 +4,7 @@
 
 NeuroNER is a program that performs named-entity recognition (NER). Website: [neuroner.com](http://neuroner.com).
 
+
 This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3.5 and TensorFlow 1.0, you can directly jump to the [Installing NeuroNER section](#installing-neuroner).
 
 Alternatively, you can use this [installation script](install_ubuntu.sh) for Ubuntu, which:
@@ -17,6 +18,22 @@ To use this script, run the following command from the terminal:
 ```
 wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/install_ubuntu.sh; bash install_ubuntu.sh
 ```
+
+
+## Table of Contents
+
+<!-- toc -->
+
+- [Installation](#installation)
+  * [Requirements](#requirements)
+- [Installing NeuroNER](#installing-neuroner)
+  * [Using TensorBoard](#using-tensorboard)
+- [Using NeuroNER](#using-neuroner)
+  * [Adding a new dataset](#adding-a-new-dataset)
+  * [Using a pretrained model](#using-a-pretrained-model)
+  * [Sharing a pretrained model](#sharing-a-pretrained-model)
+
+<!-- tocstop -->
 
 ## Installation
 
@@ -121,13 +138,13 @@ tokenizer
 
 You are highly encouraged to share a model trained on their own datasets, so that other users can use the pretrained model on other datasets. We provide the [`src/prepare_pretrained_model.py`](src/prepare_pretrained_model.py) script to make it easy to prepare a pretrained model for sharing. In order to use the script, one only needs to specify the `output_folder_name`, `epoch_number`, and `model_name` parameters in the script.
 
-By default, the only information about the dataset contained in the pretrained model is the list of tokens that appears in the dataset used for training and the corresponding embeddings learned from the dataset. 
+By default, the only information about the dataset contained in the pretrained model is the list of tokens that appears in the dataset used for training and the corresponding embeddings learned from the dataset.
 
-If you wish to share a pretrained model without providing any information about the dataset (including the list of tokens appearing in the dataset), you can do so by setting 
+If you wish to share a pretrained model without providing any information about the dataset (including the list of tokens appearing in the dataset), you can do so by setting
 
 ```delete_token_mappings = True```
 
-when running the script. In this case, it is highly recommended to use some external pre-trained token embeddings and freeze them while training the model to obtain high performance. This can be done by specifying the `token_pretrained_embedding_filepath` and setting 
+when running the script. In this case, it is highly recommended to use some external pre-trained token embeddings and freeze them while training the model to obtain high performance. This can be done by specifying the `token_pretrained_embedding_filepath` and setting
 
 ```freeze_token_embeddings = True```
 
