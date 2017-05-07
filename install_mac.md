@@ -3,7 +3,7 @@
 
 You need to install Python 3.5:
 
-download and install from <https://www.python.org/ftp/python/3.5.2/python-3.5.2-macosx10.6.pkg>.
+download and install from https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg.
 
 To install TensorFlow:
 ```
