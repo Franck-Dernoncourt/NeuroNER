@@ -6,7 +6,7 @@ from evaluate import remap_labels
 from pprint import pprint
 import pickle
 import utils_tf
-from main import load_parameters
+import main
 import codecs
 import utils_nlp
 #from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
@@ -124,7 +124,7 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
     assert pretraining_dataset.index_to_label == dataset.index_to_label
     
     # Assert that the model hyperparameters are the same
-    pretraining_parameters = load_parameters(parameters_filepath=os.path.join(pretrained_model_folder, 'parameters.ini'), verbose=False)[0]
+    pretraining_parameters = main.load_parameters(parameters_filepath=os.path.join(pretrained_model_folder, 'parameters.ini'), verbose=False)[0]
     for name in ['use_character_lstm', 'character_embedding_dimension', 'character_lstm_hidden_state_dimension', 'token_embedding_dimension', 'token_lstm_hidden_state_dimension', 'use_crf']:
         if parameters[name] != pretraining_parameters[name]:
             print("Parameters of the pretrained model:")
