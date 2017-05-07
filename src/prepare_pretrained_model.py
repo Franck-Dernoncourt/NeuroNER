@@ -73,19 +73,23 @@ def trim_model_checkpoint(parameters_filepath, dataset_filepath, input_checkpoin
     pprint(dataset.__dict__)
 
 
-def prepare_pretrained_model_for_restoring(dataset_folder_name, epoch_number, output_model_name, delete_token_mappings=False):
+def prepare_pretrained_model_for_restoring(output_folder_name, epoch_number, model_name, delete_token_mappings=False):
     '''
     Copy the dataset.pickle, parameters.ini, and model checkpoint files after removing the data used for training.
+    
     The dataset and labels are deleted from dataset.pickle by default. The only information about the dataset that remain in the pretrained model
     is the list of tokens that appears in the dataset and the corresponding token embeddings learned from the dataset.
+    
     If delete_token_mappings is set to True, index_to_token and token_to_index mappings are deleted from dataset.pickle additionally,
     and the corresponding token embeddings are deleted from the model checkpoint files. In this case, the pretrained model would not contain
-    any information about the dataset used for training the model. If the user wishes to share a pretrained model with delete_token_mappings = True,
-    it is highly recommended to use some external pre-trained token embeddings and freeze them while training the model to obtain high performance.
-    This can be done by specifying the token_pretrained_embedding_filepath and setting freeze_token_embeddings = 1 in parameters.ini for training.
+    any information about the dataset used for training the model. 
+    
+    If you wish to share a pretrained model with delete_token_mappings = True, it is highly recommended to use some external pre-trained token 
+    embeddings and freeze them while training the model to obtain high performance. This can be done by specifying the token_pretrained_embedding_filepath 
+    and setting freeze_token_embeddings = True in parameters.ini for training.
     '''
-    input_model_folder = os.path.join('..', 'output', dataset_folder_name, 'model')
-    output_model_folder = os.path.join('..', 'trained_models', output_model_name)
+    input_model_folder = os.path.join('..', 'output', output_folder_name, 'model')
+    output_model_folder = os.path.join('..', 'trained_models', model_name)
     utils.create_folder_if_not_exists(output_model_folder)
 
     # trim and copy dataset.pickle
@@ -101,11 +105,11 @@ def prepare_pretrained_model_for_restoring(dataset_folder_name, epoch_number, ou
     epoch_number_string = str(epoch_number).zfill(5)
     if delete_token_mappings:
         input_checkpoint_filepath = os.path.join(input_model_folder, 'model_{0}.ckpt'.format(epoch_number_string))
-        output_checkpoint_filepath = os.path.join(output_model_folder, 'model_{0}.ckpt'.format(output_model_name))
+        output_checkpoint_filepath = os.path.join(output_model_folder, 'model.ckpt')
         trim_model_checkpoint(parameters_filepath, output_dataset_filepath, input_checkpoint_filepath, output_checkpoint_filepath)
     else:
         for filepath in glob.glob(os.path.join(input_model_folder, 'model_{0}.ckpt*'.format(epoch_number_string))):
-            shutil.copyfile(filepath, os.path.join(output_model_folder, os.path.basename(filepath).replace(epoch_number_string, output_model_name)))
+            shutil.copyfile(filepath, os.path.join(output_model_folder, os.path.basename(filepath).replace('_' + epoch_number_string, '')))
 
  
 def check_contents_of_dataset_and_model_checkpoint(model_folder):
@@ -116,19 +120,21 @@ def check_contents_of_dataset_and_model_checkpoint(model_folder):
     dataset_filepath = os.path.join(model_folder, 'dataset.pickle')
     dataset = pickle.load(open(dataset_filepath, 'rb'))
     pprint(dataset.__dict__)
+    pprint(list(dataset.__dict__.keys()))
 
-    checkpoint_filepath = os.path.join(model_folder, 'model_{0}.ckpt'.format(output_model_name))
+    checkpoint_filepath = os.path.join(model_folder, 'model.ckpt')
     with tf.Session() as sess:
         print_tensors_in_checkpoint_file(checkpoint_filepath, tensor_name='token_embedding/token_embedding_weights', all_tensors=True)
         print_tensors_in_checkpoint_file(checkpoint_filepath, tensor_name='token_embedding/token_embedding_weights', all_tensors=False)
 
 
 if __name__ == '__main__':
-    dataset_folder_name = '.'
-    epoch_number = 10
-    output_model_name = '.'
-    prepare_pretrained_model_for_restoring(dataset_folder_name, epoch_number, output_model_name, delete_token_mappings=True)
+    output_folder_name = 'en_2017-05-05_08-58-32-633799'
+    epoch_number = 30
+    model_name = 'conll_2003_en'
+    delete_token_mappings = False
+    prepare_pretrained_model_for_restoring(output_folder_name, epoch_number, model_name, delete_token_mappings)
     
-    model_name = '.'
+    model_name = 'conll_2003_en'
     model_folder = os.path.join('..', 'trained_models', model_name)
     check_contents_of_dataset_and_model_checkpoint(model_folder)

@@ -116,28 +116,26 @@ def predict_labels(sess, model, transition_params_trained, parameters, dataset, 
 
 
 def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver):
-    pretrained_model_folder = os.path.dirname(parameters['pretrained_model_checkpoint_filepath'])
-    pretraining_dataset = pickle.load(open(os.path.join(pretrained_model_folder, 'dataset.pickle'), 'rb')) 
+    pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb')) 
+    pretrained_model_checkpoint_filepath = os.path.join(parameters['pretrained_model_folder'], 'model.ckpt')
     
     # Assert that the label sets are the same
     # Test set should have the same label set as the pretrained dataset
     assert pretraining_dataset.index_to_label == dataset.index_to_label
     
     # Assert that the model hyperparameters are the same
-    pretraining_parameters = main.load_parameters(parameters_filepath=os.path.join(pretrained_model_folder, 'parameters.ini'), verbose=False)[0]
+    pretraining_parameters = main.load_parameters(parameters_filepath=os.path.join(parameters['pretrained_model_folder'], 'parameters.ini'), verbose=False)[0]
     for name in ['use_character_lstm', 'character_embedding_dimension', 'character_lstm_hidden_state_dimension', 'token_embedding_dimension', 'token_lstm_hidden_state_dimension', 'use_crf']:
         if parameters[name] != pretraining_parameters[name]:
             print("Parameters of the pretrained model:")
             pprint(pretraining_parameters)
             raise AssertionError("The parameter {0} ({1}) is different from the pretrained model ({2}).".format(name, parameters[name], pretraining_parameters[name]))
     
-    #print_tensors_in_checkpoint_file(parameters['pretrained_model_checkpoint_filepath'], tensor_name='', all_tensors=True)
-    
     # If the token and character mappings are exactly the same
     if pretraining_dataset.index_to_token == dataset.index_to_token and pretraining_dataset.index_to_character == dataset.index_to_character:
         
         # Restore the pretrained model
-        model_saver.restore(sess, parameters['pretrained_model_checkpoint_filepath']) # Works only when the dimensions of tensor variables are matched.
+        model_saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
     
     # If the token and character mappings are different between the pretrained model and the current model
     else:
@@ -147,7 +145,7 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
         utils_tf.resize_tensor_variable(sess, model.token_embedding_weights, [pretraining_dataset.vocabulary_size, parameters['token_embedding_dimension']])
     
         # Restore the pretrained model
-        model_saver.restore(sess, parameters['pretrained_model_checkpoint_filepath']) # Works only when the dimensions of tensor variables are matched.
+        model_saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
         
         # Get pretrained embeddings
         character_embedding_weights, token_embedding_weights = sess.run([model.character_embedding_weights, model.token_embedding_weights]) 

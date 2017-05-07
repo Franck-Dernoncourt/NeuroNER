@@ -76,8 +76,7 @@ class Dataset(object):
         #   and that token embeddings that are learned in the pretrained model are loaded properly.
         all_tokens_in_pretraining_dataset = []
         if parameters['use_pretrained_model']:
-            pretrained_model_folder = os.path.dirname(parameters['pretrained_model_checkpoint_filepath'])
-            pretraining_dataset = pickle.load(open(os.path.join(pretrained_model_folder, 'dataset.pickle'), 'rb'))
+            pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb'))
             all_tokens_in_pretraining_dataset = pretraining_dataset.index_to_token.values()
 
         remap_to_unk_count_threshold = 1

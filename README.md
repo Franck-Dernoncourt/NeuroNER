@@ -100,6 +100,37 @@ A dataset may be provided in either CoNLL-2003 or BRAT format. The dataset files
 We provide an example of a dataset with the CoNLL-2003 format: [`data/conll2003/en`](data/conll2003/en).
 
 
+### Using a pretrained model
+
+In order to use a pretrained model, the `pretrained_model_folder` parameter in the [`src/parameters.ini`](src/parameters.ini) configuration file must be set to the folder containing the pretrained model. The following parameters in the [`src/parameters.ini`](src/parameters.ini) configuration file must also be set to the same values as in the configuration file located in the specified `pretrained_model_folder`:
+
+```
+use_character_lstm
+character_embedding_dimension
+character_lstm_hidden_state_dimension
+token_pretrained_embedding_filepath
+token_embedding_dimension
+token_lstm_hidden_state_dimension
+use_crf
+tagging_format
+tokenizer
+```
 
 
+### Sharing a pretrained model
 
+You are highly encouraged to share a model trained on their own datasets, so that other users can use the pretrained model on other datasets. We provide the [`src/prepare_pretrained_model.py`](src/prepare_pretrained_model.py) script to make it easy to prepare a pretrained model for sharing. In order to use the script, one only needs to specify the `output_folder_name`, `epoch_number`, and `model_name` parameters in the script.
+
+By default, the only information about the dataset contained in the pretrained model is the list of tokens that appears in the dataset used for training and the corresponding embeddings learned from the dataset. 
+
+If you wish to share a pretrained model without providing any information about the dataset (including the list of tokens appearing in the dataset), you can do so by setting 
+
+```delete_token_mappings = True```
+
+when running the script. In this case, it is highly recommended to use some external pre-trained token embeddings and freeze them while training the model to obtain high performance. This can be done by specifying the `token_pretrained_embedding_filepath` and setting 
+
+```freeze_token_embeddings = True```
+
+in the [`src/parameters.ini`](src/parameters.ini) configuration file during training.
+
+In order to share a pretrained model, please [submit a new issue](https://github.com/Franck-Dernoncourt/NeuroNER/issues/new) on the GitHub repository.
