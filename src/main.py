@@ -277,7 +277,7 @@ def main(parameters_filepath=os.path.join('.','parameters.ini'), output_folder=o
 
                     if parameters['use_pretrained_model'] and epoch_number == 0:
                         # Restore pretrained model parameters
-                        transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver, parameters_filepath)
+                        transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver)
                     elif epoch_number != 0:
                         # Train model: loop over all sequences of training set with shuffling
                         sequence_numbers=list(range(len(dataset.token_indices['train'])))
