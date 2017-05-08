@@ -342,6 +342,7 @@ def main(parameters_filepath=os.path.join('.','parameters.ini'), output_folder=o
 
 
 if __name__ == "__main__":
-    main()
+    args = parseArgs()
+    main(args.parameters_filepath, args.output_folder)
 
 
