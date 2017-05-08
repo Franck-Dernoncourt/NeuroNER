@@ -29,6 +29,9 @@ import train
 from pprint import pprint
 from entity_lstm import EntityLSTM
 from tensorflow.contrib.tensorboard.plugins import projector
+import argparse
+from argparse import RawTextHelpFormatter
+import sys
 
 # http://stackoverflow.com/questions/42217532/tensorflow-version-1-0-0-rc2-on-windows-opkernel-op-bestsplits-device-typ
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -39,7 +42,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def load_parameters(parameters_filepath=os.path.join('.','parameters.ini'), verbose=True):
+def load_parameters(parameters_filepath, verbose=True):
     '''
     Load parameters from the ini file, and ensure that each parameter is cast to the correct type
     '''
@@ -139,9 +142,31 @@ def check_parameter_compatiblity(parameters, dataset_filepaths):
     if parameters['gradient_clipping_value'] < 0:
         parameters['gradient_clipping_value'] = abs(parameters['gradient_clipping_value'])
     
-def main():
+def parseArgs(args=None):
+    ''' Parse the NeuroNER args
+    
+    Args:
+        args the args, optionally given as argument
+    '''
+    parser = argparse.ArgumentParser(description='''NeuroNER CLI''', formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-parameters_filepath', required=False, default=os.path.join('.','parameters.ini'), help='''The parameters file''')
+    parser.add_argument('-output_folder', required=False, default=os.path.join('..', 'output'), help='''The path to the output folder''')
+    try:
+        args = parser.parse_args(args=args)
+    except:
+        parser.print_help()
+        sys.exit(0)
+    return args    
+    
+def main(parameters_filepath=os.path.join('.','parameters.ini'), output_folder=os.path.join('..', 'output')):
+    ''' NeuroNER main method
+    
+    Args:
+        parameters_filepath the path to the parameters file
+        output_folder the path to the output folder
+    '''
 
-    parameters, conf_parameters = load_parameters()
+    parameters, conf_parameters = load_parameters(parameters_filepath)
     dataset_filepaths, dataset_brat_folders = get_valid_dataset_filepaths(parameters)
     check_parameter_compatiblity(parameters, dataset_filepaths)
 
@@ -178,7 +203,6 @@ def main():
             dataset_name = utils.get_basename_without_extension(parameters['dataset_text_folder'])
             model_name = '{0}_{1}'.format(dataset_name, results['execution_details']['time_stamp'])
 
-            output_folder=os.path.join('..', 'output')
             utils.create_folder_if_not_exists(output_folder)
             stats_graph_folder=os.path.join(output_folder, model_name) # Folder where to save graphs
             utils.create_folder_if_not_exists(stats_graph_folder)
@@ -253,7 +277,7 @@ def main():
 
                     if parameters['use_pretrained_model'] and epoch_number == 0:
                         # Restore pretrained model parameters
-                        transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver)
+                        transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver, parameters_filepath)
                     elif epoch_number != 0:
                         # Train model: loop over all sequences of training set with shuffling
                         sequence_numbers=list(range(len(dataset.token_indices['train'])))

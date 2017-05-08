@@ -115,7 +115,7 @@ def predict_labels(sess, model, transition_params_trained, parameters, dataset, 
     return y_pred, y_true, output_filepaths
 
 
-def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver):
+def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver, parameters_filepath):
     pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb')) 
     pretrained_model_checkpoint_filepath = os.path.join(parameters['pretrained_model_folder'], 'model.ckpt')
     
@@ -124,7 +124,9 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
     assert pretraining_dataset.index_to_label == dataset.index_to_label
     
     # Assert that the model hyperparameters are the same
-    pretraining_parameters = main.load_parameters(parameters_filepath=os.path.join(parameters['pretrained_model_folder'], 'parameters.ini'), verbose=False)[0]
+    if parameters is None:
+        parameters = os.path.join(parameters['pretrained_model_folder'], 'parameters.ini')
+    pretraining_parameters = main.load_parameters(parameters_filepath, verbose=False)[0]
     for name in ['use_character_lstm', 'character_embedding_dimension', 'character_lstm_hidden_state_dimension', 'token_embedding_dimension', 'token_lstm_hidden_state_dimension', 'use_crf']:
         if parameters[name] != pretraining_parameters[name]:
             print("Parameters of the pretrained model:")
