@@ -107,7 +107,7 @@ def check_brat_annotation_and_text_compatibility(brat_folder):
     print("Checking the validity of BRAT-formatted {0} set... ".format(dataset_type), end='')
     text_filepaths = sorted(glob.glob(os.path.join(brat_folder, '*.txt')))
     for text_filepath in text_filepaths:
-        base_filename = os.path.basename(text_filepath).split('.')[0]
+        base_filename = os.path.splitext(os.path.basename(text_filepath))[0]
         annotation_filepath = os.path.join(os.path.dirname(text_filepath), base_filename + '.ann')
         # check if annotation file exists
         if not os.path.exists(annotation_filepath):
@@ -132,7 +132,7 @@ def brat_to_conll(input_folder, output_filepath, tokenizer, language):
     text_filepaths = sorted(glob.glob(os.path.join(input_folder, '*.txt')))
     output_file = codecs.open(output_filepath, 'w', 'utf-8')
     for text_filepath in text_filepaths:
-        base_filename = os.path.basename(text_filepath).split('.')[0]
+        base_filename = os.path.splitext(os.path.basename(text_filepath))[0]
         annotation_filepath = os.path.join(os.path.dirname(text_filepath), base_filename + '.ann')
         # create annotation file if it does not exist
         if not os.path.exists(annotation_filepath):
