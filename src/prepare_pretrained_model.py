@@ -129,12 +129,12 @@ def check_contents_of_dataset_and_model_checkpoint(model_folder):
 
 
 if __name__ == '__main__':
-#     output_folder_name = 'en_2017-05-05_08-58-32-633799'
-#     epoch_number = 30
-#     model_name = 'conll_2003_en'
-#     delete_token_mappings = False
-#     prepare_pretrained_model_for_restoring(output_folder_name, epoch_number, model_name, delete_token_mappings)
+    output_folder_name = 'en_2017-05-05_08-58-32-633799'
+    epoch_number = 30
+    model_name = 'conll_2003_en'
+    delete_token_mappings = False
+    prepare_pretrained_model_for_restoring(output_folder_name, epoch_number, model_name, delete_token_mappings)
     
-    model_name = 'mimic_glove_spacy_iobes'
-    model_folder = os.path.join('..', 'trained_models', model_name)
-    check_contents_of_dataset_and_model_checkpoint(model_folder)
+#     model_name = 'mimic_glove_spacy_iobes'
+#     model_folder = os.path.join('..', 'trained_models', model_name)
+#     check_contents_of_dataset_and_model_checkpoint(model_folder)
