@@ -139,6 +139,7 @@ def brat_to_conll(input_folder, output_filepath, tokenizer, language):
             codecs.open(annotation_filepath, 'w', 'UTF-8').close()
 
         text, entities = get_entities_from_brat(text_filepath, annotation_filepath)
+        entities = sorted(entities, key=lambda entity:entity["start"])
         
         if tokenizer == 'spacy':
             sentences = get_sentences_and_tokens_from_spacy(text, spacy_nlp)
@@ -158,16 +159,16 @@ def brat_to_conll(input_folder, output_filepath, tokenizer, language):
                         token['label'] = entity['type'].replace('-', '_') # Because the ANN doesn't support tag with '-' in it
 
                         break
+                    elif token['end'] < entity['start']:
+                        break
+                        
                 if len(entities) == 0:
                     entity={'end':0}
                 if token['label'] == 'O':
                     gold_label = 'O'
                     inside = False
-                elif inside:
-                    if token['label'] == previous_token_label:
-                        gold_label = 'I-{0}'.format(token['label'])
-                    else:
-                        gold_label = 'B-{0}'.format(token['label'])
+                elif inside and token['label'] == previous_token_label:
+                    gold_label = 'I-{0}'.format(token['label'])
                 else:
                     inside = True
                     gold_label = 'B-{0}'.format(token['label'])
