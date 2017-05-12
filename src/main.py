@@ -389,6 +389,8 @@ def main(argv=sys.argv):
             results['execution_details']['train_duration'] = end_time - start_time
             results['execution_details']['train_end'] = end_time
             evaluate.save_results(results, stats_graph_folder)
+            for dataset_type in dataset_filepaths.keys():
+                writers[dataset_type].close()
 
     sess.close() # release the session's resources
 
