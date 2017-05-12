@@ -42,16 +42,24 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def load_parameters(parameters_filepath, verbose=True):
+def load_parameters(parameters_filepath, arguments=None, verbose=True):
     '''
-    Load parameters from the ini file, and ensure that each parameter is cast to the correct type
+    Load parameters from the ini file if specified, take into account any command line argument, and ensure that each parameter is cast to the correct type.
+    Command line arguments take precedence over parameters specified in the parameter file.
     '''
-    conf_parameters = configparser.ConfigParser()
-    conf_parameters.read(parameters_filepath)
-    nested_parameters = utils.convert_configparser_to_dictionary(conf_parameters)
+
     parameters = {}
-    for k,v in nested_parameters.items():
-        parameters.update(v)
+    # If a parameter file is specified, load it
+    if len(parameters_filepath) > 0:
+        conf_parameters = configparser.ConfigParser()
+        conf_parameters.read(parameters_filepath)
+        nested_parameters = utils.convert_configparser_to_dictionary(conf_parameters)
+        for k,v in nested_parameters.items():
+            parameters.update(v)
+    # Ensure that any arguments the specified in the command line overwrite parameters specified in the parameter file
+    for k,v in arguments.items():
+        if arguments[k] != arguments['argument_default_value']:
+            parameters[k] = v
     for k,v in parameters.items():
         # If the value is a list delimited with a comma, choose one element at random.
         if ',' in v:
@@ -95,7 +103,7 @@ def get_valid_dataset_filepaths(parameters):
                 # Populate brat text and annotation files based on conll file
                 conll_to_brat.conll_to_brat(dataset_filepaths[dataset_type], dataset_compatible_with_brat_filepath, dataset_brat_folders[dataset_type], dataset_brat_folders[dataset_type])
                 dataset_filepaths[dataset_type] = dataset_compatible_with_brat_filepath
-                
+
         # Conll file does not exist
         else:
             # Brat text files exist
@@ -113,13 +121,13 @@ def get_valid_dataset_filepaths(parameters):
                 del dataset_filepaths[dataset_type]
                 del dataset_brat_folders[dataset_type]
                 continue
-        
+
         if parameters['tagging_format'] == 'bioes':
             # Generate conll file with BIOES format
             bioes_filepath = os.path.join(parameters['dataset_text_folder'], '{0}_bioes.txt'.format(utils.get_basename_without_extension(dataset_filepaths[dataset_type])))
             utils_nlp.convert_conll_from_bio_to_bioes(dataset_filepaths[dataset_type], bioes_filepath)
             dataset_filepaths[dataset_type] = bioes_filepath
-            
+
     return dataset_filepaths, dataset_brat_folders
 
 def check_parameter_compatiblity(parameters, dataset_filepaths):
@@ -138,35 +146,79 @@ def check_parameter_compatiblity(parameters, dataset_filepaths):
     if parameters['use_pretrained_model']:
         if all([not parameters[s] for s in ['reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf']]):
             raise ValueError('If use_pretrained_model is set to True, at least one of reload_character_embeddings, reload_character_lstm, reload_token_embeddings, reload_token_lstm, reload_feedforward, reload_crf must be set to True.')
-    
+
     if parameters['gradient_clipping_value'] < 0:
         parameters['gradient_clipping_value'] = abs(parameters['gradient_clipping_value'])
-    
-def parseArgs(args=None):
-    ''' Parse the NeuroNER args
-    
-    Args:
-        args the args, optionally given as argument
+
+def parse_arguments(arguments=None):
+    ''' Parse the NeuroNER arguments
+
+    arguments:
+        arguments the arguments, optionally given as argument
     '''
     parser = argparse.ArgumentParser(description='''NeuroNER CLI''', formatter_class=RawTextHelpFormatter)
-    parser.add_argument('-parameters_filepath', required=False, default=os.path.join('.','parameters.ini'), help='''The parameters file''')
-    parser.add_argument('-output_folder', required=False, default=os.path.join('..', 'output'), help='''The path to the output folder''')
+    parser.add_argument('--parameters_filepath', required=False, default=os.path.join('.','parameters.ini'), help='The parameters file')
+
+    argument_default_value = 'argument_default_dummy_value_please_ignore_d41d8cd98f00b204e9800998ecf8427e'
+    parser.add_argument('--character_embedding_dimension', required=False, default=argument_default_value, help='')
+    parser.add_argument('--character_lstm_hidden_state_dimension', required=False, default=argument_default_value, help='')
+    parser.add_argument('--check_for_digits_replaced_with_zeros', required=False, default=argument_default_value, help='')
+    parser.add_argument('--check_for_lowercase', required=False, default=argument_default_value, help='')
+    parser.add_argument('--dataset_text_folder', required=False, default=argument_default_value, help='')
+    parser.add_argument('--debug', required=False, default=argument_default_value, help='')
+    parser.add_argument('--dropout_rate', required=False, default=argument_default_value, help='')
+    parser.add_argument('--experiment_name', required=False, default=argument_default_value, help='')
+    parser.add_argument('--freeze_token_embeddings', required=False, default=argument_default_value, help='')
+    parser.add_argument('--gradient_clipping_value', required=False, default=argument_default_value, help='')
+    parser.add_argument('--learning_rate', required=False, default=argument_default_value, help='')
+    parser.add_argument('--load_only_pretrained_token_embeddings', required=False, default=argument_default_value, help='')
+    parser.add_argument('--main_evaluation_mode', required=False, default=argument_default_value, help='')
+    parser.add_argument('--maximum_number_of_epochs', required=False, default=argument_default_value, help='')
+    parser.add_argument('--number_of_cpu_threads', required=False, default=argument_default_value, help='')
+    parser.add_argument('--number_of_gpus', required=False, default=argument_default_value, help='')
+    parser.add_argument('--optimizer', required=False, default=argument_default_value, help='')
+    parser.add_argument('--output_folder', required=False, default=argument_default_value, help='')
+    parser.add_argument('--patience', required=False, default=argument_default_value, help='')
+    parser.add_argument('--plot_format', required=False, default=argument_default_value, help='')
+    parser.add_argument('--pretrained_model_folder', required=False, default=argument_default_value, help='')
+    parser.add_argument('--reload_character_embeddings', required=False, default=argument_default_value, help='')
+    parser.add_argument('--reload_character_lstm', required=False, default=argument_default_value, help='')
+    parser.add_argument('--reload_crf', required=False, default=argument_default_value, help='')
+    parser.add_argument('--reload_feedforward', required=False, default=argument_default_value, help='')
+    parser.add_argument('--reload_token_embeddings', required=False, default=argument_default_value, help='')
+    parser.add_argument('--reload_token_lstm', required=False, default=argument_default_value, help='')
+    parser.add_argument('--remap_unknown_tokens_to_unk', required=False, default=argument_default_value, help='')
+    parser.add_argument('--spacylanguage', required=False, default=argument_default_value, help='')
+    parser.add_argument('--tagging_format', required=False, default=argument_default_value, help='')
+    parser.add_argument('--token_embedding_dimension', required=False, default=argument_default_value, help='')
+    parser.add_argument('--token_lstm_hidden_state_dimension', required=False, default=argument_default_value, help='')
+    parser.add_argument('--token_pretrained_embedding_filepath', required=False, default=argument_default_value, help='')
+    parser.add_argument('--tokenizer', required=False, default=argument_default_value, help='')
+    parser.add_argument('--train_model', required=False, default=argument_default_value, help='')
+    parser.add_argument('--use_character_lstm', required=False, default=argument_default_value, help='')
+    parser.add_argument('--use_crf', required=False, default=argument_default_value, help='')
+    parser.add_argument('--use_pretrained_model', required=False, default=argument_default_value, help='')
+    parser.add_argument('--verbose', required=False, default=argument_default_value, help='')
+
     try:
-        args = parser.parse_args(args=args)
+        arguments = parser.parse_args(args=arguments)
     except:
         parser.print_help()
         sys.exit(0)
-    return args    
-    
-def main(parameters_filepath=os.path.join('.','parameters.ini'), output_folder=os.path.join('..', 'output')):
+
+    arguments = vars(arguments) # http://stackoverflow.com/questions/16878315/what-is-the-right-way-to-treat-python-argparse-namespace-as-a-dictionary
+    arguments['argument_default_value'] = argument_default_value
+    return arguments
+
+def main(argv=sys.argv):
     ''' NeuroNER main method
-    
+
     Args:
         parameters_filepath the path to the parameters file
         output_folder the path to the output folder
     '''
-
-    parameters, conf_parameters = load_parameters(parameters_filepath)
+    arguments = parse_arguments(argv[1:])
+    parameters, conf_parameters = load_parameters(arguments['parameters_filepath'], arguments=arguments)
     dataset_filepaths, dataset_brat_folders = get_valid_dataset_filepaths(parameters)
     check_parameter_compatiblity(parameters, dataset_filepaths)
 
@@ -203,8 +255,8 @@ def main(parameters_filepath=os.path.join('.','parameters.ini'), output_folder=o
             dataset_name = utils.get_basename_without_extension(parameters['dataset_text_folder'])
             model_name = '{0}_{1}'.format(dataset_name, results['execution_details']['time_stamp'])
 
-            utils.create_folder_if_not_exists(output_folder)
-            stats_graph_folder=os.path.join(output_folder, model_name) # Folder where to save graphs
+            utils.create_folder_if_not_exists(parameters['output_folder'])
+            stats_graph_folder=os.path.join(parameters['output_folder'], model_name) # Folder where to save graphs
             utils.create_folder_if_not_exists(stats_graph_folder)
             model_folder = os.path.join(stats_graph_folder, 'model')
             utils.create_folder_if_not_exists(model_folder)
@@ -342,7 +394,6 @@ def main(parameters_filepath=os.path.join('.','parameters.ini'), output_folder=o
 
 
 if __name__ == "__main__":
-    args = parseArgs()
-    main(args.parameters_filepath, args.output_folder)
+    main()
 
 

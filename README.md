@@ -97,7 +97,16 @@ This starts a web server that is accessible at http://127.0.0.1:6006 from your w
 ## Using NeuroNER
 
 
-If you wish to change any of NeuroNER parameters, you should modify the [`src/parameters.ini`](src/parameters.ini) configuration file.
+If you wish to change any of NeuroNER parameters, you should modify the [`src/parameters.ini`](src/parameters.ini) configuration file. Alternatively, any parameter may be specified in the command line. 
+
+For example:
+```
+python3.5 main.py --output_folder=../output --maximum_number_of_epochs=2 --token_pretrained_embedding_filepath=""
+```
+
+If a parameter is specified in both the [`src/parameters.ini`](src/parameters.ini) configuration file and as a command line argument, then the command line argument takes precedence (i.e., the parameter in [`src/parameters.ini`](src/parameters.ini) is ignored). You may specify a different configuration file with the `--parameters_filepath` command line argument. The command line arguments have no default value except for `--parameters_filepath`, which points to [`src/parameters.ini`](src/parameters.ini).
+
+
 
 NeuroNER has 3 modes of operation:
 

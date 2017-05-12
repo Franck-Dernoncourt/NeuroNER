@@ -11,26 +11,21 @@ class TestMain(unittest.TestCase):
 
     testFolder = os.path.join(os.path.dirname(__file__), "test")
     outputFolder = os.path.join(testFolder, "output")
-    
+
     def setUp(self):
         # delete the outputFolder
         if os.path.isdir(self.outputFolder):
             rmtree(self.outputFolder)
-            
+
     def tearDown(self):
-        # delete the outputFolder 
+        # delete the outputFolder
         if os.path.isdir(self.outputFolder):
             rmtree(self.outputFolder)
 
     def test_ProvideOutputDir_CorrectlyOutputsToDir(self):
         ''' Sanity test to check if all proper model output files are created in the output folder'''
-        args_to_parse = [
-        '-output_folder', self.outputFolder,
-        '-parameters_filepath', os.path.join(self.testFolder, "test-parameters-training.ini")
-        ]
-        args = main.parseArgs(args_to_parse)
-        main.main(args.parameters_filepath, args.output_folder)
-        
+        main.main(argv=['', '--output_folder', self.outputFolder,'--parameters_filepath', os.path.join(self.testFolder, 'test-parameters-training.ini')])
+
         # find the newest dir, from: http://stackoverflow.com/questions/2014554/find-the-newest-folder-in-a-directory-in-python
         run_outputdir = max([os.path.join(self.outputFolder,d) for d in os.listdir(self.outputFolder)], key=os.path.getmtime)
 
