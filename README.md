@@ -32,6 +32,7 @@ wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/instal
   * [Adding a new dataset](#adding-a-new-dataset)
   * [Using a pretrained model](#using-a-pretrained-model)
   * [Sharing a pretrained model](#sharing-a-pretrained-model)
+- [Citation](#citation)
 
 <!-- tocstop -->
 
@@ -160,3 +161,17 @@ when running the script. In this case, it is highly recommended to use some exte
 in the [`src/parameters.ini`](src/parameters.ini) configuration file during training.
 
 In order to share a pretrained model, please [submit a new issue](https://github.com/Franck-Dernoncourt/NeuroNER/issues/new) on the GitHub repository.
+
+## Citation
+
+If you use NeuroNER in your publications, please cite this [technical report](https://arxiv.org/abs/1705.05487):
+
+```
+
+@article{2017neuroner,
+  title={{NeuroNER}: an easy-to-use program for named-entity recognition based on neural networks},  
+  author={Dernoncourt, Franck and Lee, Ji Young and Szolovits, Peter},
+  journal={arXiv:1705.05487},
+  year={2017}
+}
+```
