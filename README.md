@@ -167,7 +167,6 @@ In order to share a pretrained model, please [submit a new issue](https://github
 If you use NeuroNER in your publications, please cite this [technical report](https://arxiv.org/abs/1705.05487):
 
 ```
-
 @article{2017neuroner,
   title={{NeuroNER}: an easy-to-use program for named-entity recognition based on neural networks},  
   author={Dernoncourt, Franck and Lee, Ji Young and Szolovits, Peter},
