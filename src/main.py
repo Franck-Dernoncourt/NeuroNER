@@ -42,7 +42,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def load_parameters(parameters_filepath, arguments=None, verbose=True):
+def load_parameters(parameters_filepath, arguments={}, verbose=True):
     '''
     Load parameters from the ini file if specified, take into account any command line argument, and ensure that each parameter is cast to the correct type.
     Command line arguments take precedence over parameters specified in the parameter file.
