@@ -24,9 +24,9 @@ wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/instal
 
 <!-- toc -->
 
-- [Installation](#installation)
-  * [Requirements](#requirements)
 - [Installing NeuroNER](#installing-neuroner)
+  * [Requirements](#requirements)
+  * [NeuroNER](#neuroner)
 - [Using NeuroNER](#using-neuroner)
   * [Adding a new dataset](#adding-a-new-dataset)
   * [Using a pretrained model](#using-a-pretrained-model)
@@ -36,7 +36,7 @@ wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/instal
 
 <!-- tocstop -->
 
-## Installation
+## Installing NeuroNER
 
 ### Requirements
 
@@ -52,8 +52,7 @@ Installation instructions for TensorFlow, Python 3.5, and (optional) BRAT are gi
 - [Ubuntu](install_ubuntu.md)
 - [Windows](install_windows.md)
 
-## Installing NeuroNER
-
+## NeuroNER
 
 To download NeuroNER code, download and unzip http://neuroner.com/NeuroNER-master.zip, which can be done on Ubuntu and Mac OS X with:
 
