@@ -73,7 +73,13 @@ wget http://neuroner.com/data/word_vectors/glove.6B.100d.zip
 unzip glove.6B.100d.zip
 ```
 
-NeuroNER is now ready to run! By default NeuroNER is configured to train and test on the CoNLL-2003 dataset. To start the training:
+NeuroNER is now ready to run.
+
+
+
+## Using NeuroNER
+
+By default NeuroNER is configured to train and test on the CoNLL-2003 dataset. To start the training:
 
 ```
 # To use the CPU if you have installed tensorflow, or use the GPU if you have installed tensorflow-gpu:
@@ -86,28 +92,21 @@ CUDA_VISIBLE_DEVICES="" python3.5 main.py
 CUDA_VISIBLE_DEVICES=1 python3.5 main.py
 ```
 
-### Using TensorBoard
+If you wish to change any of NeuroNER parameters, you should modify the [`src/parameters.ini`](src/parameters.ini) configuration file. Alternatively, any parameter may be specified in the command line.
 
-You may launch TensorBoard during or after the training phase. To do so, run in the terminal from the NeuroNER folder:
+For example, to reduce the number of training epochs and not use any pre-trained token embeddings:
 ```
-tensorboard --logdir=output
+python3.5 main.py --maximum_number_of_epochs=2 --token_pretrained_embedding_filepath=""
 ```
 
-This starts a web server that is accessible at http://127.0.0.1:6006 from your web browser.
 
-## Using NeuroNER
+To perform NER on some plain texts using a pre-trained model:
 
-
-If you wish to change any of NeuroNER parameters, you should modify the [`src/parameters.ini`](src/parameters.ini) configuration file. Alternatively, any parameter may be specified in the command line. 
-
-For example:
 ```
-python3.5 main.py --output_folder=../output --maximum_number_of_epochs=2 --token_pretrained_embedding_filepath=""
+python3.5 main.py --train_model=False --use_pretrained_model=True --dataset_text_folder=../data/example_unannotated_texts --pretrained_model_folder=../trained_models/conll_2003_en
 ```
 
 If a parameter is specified in both the [`src/parameters.ini`](src/parameters.ini) configuration file and as a command line argument, then the command line argument takes precedence (i.e., the parameter in [`src/parameters.ini`](src/parameters.ini) is ignored). You may specify a different configuration file with the `--parameters_filepath` command line argument. The command line arguments have no default value except for `--parameters_filepath`, which points to [`src/parameters.ini`](src/parameters.ini).
-
-
 
 NeuroNER has 3 modes of operation:
 
@@ -124,7 +123,11 @@ A dataset may be provided in either CoNLL-2003 or BRAT format. The dataset files
 - Test set: `test.txt` file (CoNLL-2003 format) or `test` folder (BRAT format). It must contain labels.
 - Deployment set: `deploy.txt` file (CoNLL-2003 format) or `deploy` folder (BRAT format). It shouldn't contain any label (if it does, labels are ignored).
 
-We provide an example of a dataset with the CoNLL-2003 format: [`data/conll2003/en`](data/conll2003/en).
+We provide several examples of datasets:
+
+- [`data/conll2003/en`](data/conll2003/en): annotated dataset with the CoNLL-2003 format, containing 3 files (`train.txt`, `valid.txt` and  `test.txt`).
+- [`data/example_unannotated_texts`](data/example_unannotated_texts): unannotated dataset with the BRAT format, containing 1 folder (`deploy/`). Note that the BRAT format with no annotation is the same as plain texts.
+
 
 
 ### Using a pretrained model
@@ -162,13 +165,22 @@ in the [`src/parameters.ini`](src/parameters.ini) configuration file during trai
 
 In order to share a pretrained model, please [submit a new issue](https://github.com/Franck-Dernoncourt/NeuroNER/issues/new) on the GitHub repository.
 
+### Using TensorBoard
+
+You may launch TensorBoard during or after the training phase. To do so, run in the terminal from the NeuroNER folder:
+```
+tensorboard --logdir=output
+```
+
+This starts a web server that is accessible at http://127.0.0.1:6006 from your web browser.
+
 ## Citation
 
 If you use NeuroNER in your publications, please cite this [technical report](https://arxiv.org/abs/1705.05487):
 
 ```
 @article{2017neuroner,
-  title={{NeuroNER}: an easy-to-use program for named-entity recognition based on neural networks},  
+  title={{NeuroNER}: an easy-to-use program for named-entity recognition based on neural networks},
   author={Dernoncourt, Franck and Lee, Ji Young and Szolovits, Peter},
   journal={arXiv:1705.05487},
   year={2017}

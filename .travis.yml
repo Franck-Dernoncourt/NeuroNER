@@ -16,3 +16,4 @@ install:
 script:  
   - cd src
   - python main.py
+  - python main.py --train_model=False --use_pretrained_model=True --dataset_text_folder=../data/example_unannotated_texts 

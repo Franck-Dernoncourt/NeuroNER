@@ -1,0 +1,1 @@
+This text was written in the United States. It demonstrates how to use NeuroNER with unannotated texts. Joe, whom I recently met in Boston, told me it was easy to use.
