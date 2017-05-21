@@ -4,20 +4,7 @@
 
 NeuroNER is a program that performs named-entity recognition (NER). Website: [neuroner.com](http://neuroner.com).
 
-
-This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3.5 and TensorFlow 1.0, you can directly jump to the [Installing NeuroNER section](#installing-neuroner).
-
-Alternatively, you can use this [installation script](install_ubuntu.sh) for Ubuntu, which:
-
-1. Installs TensorFlow (CPU only) and Python 3.5.
-2. Downloads the NeuroNER code as well as the word embeddings.
-3. Starts training on the CoNLL-2003 dataset (the F1-score on the test set should be around 0.90, i.e. on par with state-of-the-art systems).
-
-To use this script, run the following command from the terminal:
-
-```
-wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/install_ubuntu.sh; bash install_ubuntu.sh
-```
+This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3.5 and TensorFlow 1.0, you can directly jump to the [Downloading NeuroNER](#downloading-neuroner).
 
 
 ## Table of Contents
@@ -26,7 +13,7 @@ wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/instal
 
 - [Installing NeuroNER](#installing-neuroner)
   * [Requirements](#requirements)
-  * [NeuroNER](#neuroner)
+  * [Downloading NeuroNER](#downloading-neuroner)
 - [Using NeuroNER](#using-neuroner)
   * [Adding a new dataset](#adding-a-new-dataset)
   * [Using a pretrained model](#using-a-pretrained-model)
@@ -52,7 +39,21 @@ Installation instructions for TensorFlow, Python 3.5, and (optional) BRAT are gi
 - [Ubuntu](install_ubuntu.md)
 - [Windows](install_windows.md)
 
-## NeuroNER
+
+Alternatively, you can use this [installation script](install_ubuntu.sh) for Ubuntu, which:
+
+1. Installs TensorFlow (CPU only) and Python 3.5.
+2. Downloads the NeuroNER code as well as the word embeddings.
+3. Starts training on the CoNLL-2003 dataset (the F1-score on the test set should be around 0.90, i.e. on par with state-of-the-art systems).
+
+To use this script, run the following command from the terminal:
+
+```
+wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/install_ubuntu.sh; bash install_ubuntu.sh
+```
+
+
+## Downloading NeuroNER
 
 To download NeuroNER code, download and unzip http://neuroner.com/NeuroNER-master.zip, which can be done on Ubuntu and Mac OS X with:
 
