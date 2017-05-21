@@ -27,11 +27,11 @@ wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/instal
 - [Installation](#installation)
   * [Requirements](#requirements)
 - [Installing NeuroNER](#installing-neuroner)
-  * [Using TensorBoard](#using-tensorboard)
 - [Using NeuroNER](#using-neuroner)
   * [Adding a new dataset](#adding-a-new-dataset)
   * [Using a pretrained model](#using-a-pretrained-model)
   * [Sharing a pretrained model](#sharing-a-pretrained-model)
+  * [Using TensorBoard](#using-tensorboard)
 - [Citation](#citation)
 
 <!-- tocstop -->
