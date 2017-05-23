@@ -6,14 +6,14 @@
 
 <!-- toc -->
 
-- [Python 3.5 and TensorFlow](#python-35-and-tensorflow)
+- [Python 3.5, TensorFlow, and several other Python packages](#python-35-and-tensorflow)
 - [SpaCy](#spacy)
 - [Perl](#perl)
 - [TensorBoard](#tensorboard)
 
 <!-- tocstop -->
 
-## Python 3.5 and TensorFlow
+## Python 3.5, TensorFlow, and several other Python packages
 First, install Python 3.5 and TensorFlow following these instructions: [How to install TensorFlow on Windows?](http://stackoverflow.com/a/39902815/395857)
 
 Then, from the command prompt (make sure `pip` is connected to Python 3.5. You can verify it by running `pip -V`):
@@ -56,6 +56,23 @@ To add perl in your `Path` system environment variable:
 
 !-->
 
+## BRAT (optional)
 
-## TensorBoard
+Installing BRAT is optional: it is only needed to easily create, change or view the annotations. BRAT does not run natively on Microsoft Windows, however it runs smoothly on [Cygwin](https://www.cygwin.com). After installing Cygwin, run `Cygwin.bat` (by default located on `C:\cygwin64\` if you used the 64-bit installation for Cygwin). Then, in the terminal that just opened, run:
+
+```
+mkdir brat
+cd brat
+wget http://weaver.nlplab.org/~brat/releases/brat-v1.3_Crunchy_Frog.tar.gz
+tar xzf brat-v1.3_Crunchy_Frog.tar.gz
+cd brat-v1.3_Crunchy_Frog
+./install.sh -u
+python standalone.py
+```
+
+BRAT should now be accessible through the web browser at [http://127.0.0.1:8001](http://127.0.0.1:8001).
+
+
+
+## TensorBoard (optional)
  The `tensorboard.exe` binary should also be in your `Path` system environment variable, if you plan to use TensorBoard (optional).
