@@ -59,7 +59,7 @@ To download NeuroNER code, download and unzip http://neuroner.com/NeuroNER-maste
 
 ```
 wget https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip
-sudo apt-get install -y unzip
+sudo apt-get install -y unzip # This line is for Ubuntu users only
 unzip master.zip
 ```
 
