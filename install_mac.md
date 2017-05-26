@@ -20,7 +20,7 @@ sudo pip3 install -U networkx matplotlib scikit-learn scipy spacy pycorenlp
 python3.5 -m spacy download en
 ```
 
-To install BRAT (optional, you just need it if you want to easily change or view the annotations):
+To install BRAT (optional, you just need it if you want to easily create, change or view the annotations):
 
 ```
 mkdir brat
@@ -29,6 +29,8 @@ wget http://weaver.nlplab.org/~brat/releases/brat-v1.3_Crunchy_Frog.tar.gz
 tar xzf brat-v1.3_Crunchy_Frog.tar.gz
 cd brat-v1.3_Crunchy_Frog
 ./install.sh -u
+
+# To run BRAT (requires Python 2.5, 2.6 or 2.7):
 python standalone.py
 ```
 
