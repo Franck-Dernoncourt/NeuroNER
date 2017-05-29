@@ -1,4 +1,4 @@
-# Installing NeuroNER on Microsoft Windows
+# Installing NeuroNER requirements on Microsoft Windows
 
 (tested on Windows 7 SP1 64-bit)
 
@@ -14,7 +14,7 @@
 <!-- tocstop -->
 
 ## Python 3.5, TensorFlow, and several other Python packages
-First, install Python 3.5 and TensorFlow following these instructions: [How to install TensorFlow on Windows?](http://stackoverflow.com/a/39902815/395857)
+First, install Python 3.5 64-bit and TensorFlow following these instructions: [How to install TensorFlow on Windows?](http://stackoverflow.com/a/39902815/395857)
 
 Then, from the command prompt (make sure `pip` is connected to Python 3.5. You can verify it by running `pip -V`):
 
@@ -23,7 +23,7 @@ pip install -U networkx matplotlib scikit-learn scipy pycorenlp
 ```
 
 ## SpaCy
-You need to install SpaCy. To do so, two solutions.
+You need to install SpaCy. To do so, 3 solutions.
 
 Solution 1: Installing Visual Studio Express 2015 (https://www.visualstudio.com/vs/visual-studio-express, free but takes 12 GB of space on the hard drive), then run:
 ```
@@ -39,6 +39,25 @@ conda install spacy
 python -m spacy.en.download
 python -m spacy download en
 
+```
+
+Solution 3: Download from http://www.lfd.uci.edu/~gohlke/pythonlibs these precompiled Python packages (you may use a more recent version of the packages, but it should end with `-cp35-cp35m-win_amd64.whl`, which indicates they are compiled for Python 3.5 64-bit.):
+
+- `cymem-1.31.2-cp35-cp35m-win_amd64.whl`
+- `murmurhash-0.26.4-cp35-cp35m-win_amd64.whl`
+- `preshed-1.0.0-cp35-cp35m-win_amd64.whl`
+- `thinc-6.5.2-cp35-cp35m-win_amd64.whl`
+- `spacy-1.8.2-cp35-cp35m-win_amd64.whl`
+
+Then, run from the command prompt:
+
+```
+pip install cymem-1.31.2-cp35-cp35m-win_amd64.whl
+pip install murmurhash-0.26.4-cp35-cp35m-win_amd64.whl
+pip install preshed-1.0.0-cp35-cp35m-win_amd64.whl
+pip install thinc-6.5.2-cp35-cp35m-win_amd64.whl
+pip install spacy-1.8.2-cp35-cp35m-win_amd64.whl
+python -m spacy.en.download
 ```
 
 ## Perl
@@ -76,3 +95,5 @@ BRAT should now be accessible through the web browser at [http://127.0.0.1:8001]
 
 ## TensorBoard (optional)
  The `tensorboard.exe` binary should also be in your `Path` system environment variable, if you plan to use TensorBoard (optional).
+
+You can now [download and run NeuroNER](README.md#downloading-neuroner).

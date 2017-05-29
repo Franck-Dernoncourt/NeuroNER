@@ -1,4 +1,4 @@
-# Installing NeuroNER on Ubuntu
+# Installing NeuroNER requirements on Ubuntu
 
 ## Table of Contents
 
@@ -67,3 +67,5 @@ python standalone.py
 ```
 
 BRAT should now be accessible through the web browser at [http://127.0.0.1:8001](http://127.0.0.1:8001).
+
+You can now [download and run NeuroNER](README.md#downloading-neuroner).

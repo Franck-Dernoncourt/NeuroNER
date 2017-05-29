@@ -1,4 +1,4 @@
-# Installing NeuroNER on Mac OS X
+# Installing NeuroNER requirements on Mac OS X
 
 
 You need to install Python 3.5 (e.g., from https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg)
@@ -35,3 +35,5 @@ python standalone.py
 ```
 
 BRAT should now be accessible through the web browser at [http://127.0.0.1:8001](http://127.0.0.1:8001).
+
+You can now [download and run NeuroNER](README.md#downloading-neuroner).
