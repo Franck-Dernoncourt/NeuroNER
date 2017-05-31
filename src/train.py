@@ -122,15 +122,7 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
     # Assert that the label sets are the same
     # Test set should have the same label set as the pretrained dataset
     assert pretraining_dataset.index_to_label == dataset.index_to_label
-    
-    # Assert that the model hyperparameters are the same
-    pretraining_parameters = main.load_parameters(parameters_filepath=os.path.join(parameters['pretrained_model_folder'], 'parameters.ini'), verbose=False)[0]
-    for name in ['use_character_lstm', 'character_embedding_dimension', 'character_lstm_hidden_state_dimension', 'token_embedding_dimension', 'token_lstm_hidden_state_dimension', 'use_crf']:
-        if parameters[name] != pretraining_parameters[name]:
-            print("Parameters of the pretrained model:")
-            pprint(pretraining_parameters)
-            raise AssertionError("The parameter {0} ({1}) is different from the pretrained model ({2}).".format(name, parameters[name], pretraining_parameters[name]))
-    
+
     # If the token and character mappings are exactly the same
     if pretraining_dataset.index_to_token == dataset.index_to_token and pretraining_dataset.index_to_character == dataset.index_to_character:
         

@@ -76,6 +76,14 @@ def load_parameters(parameters_filepath, arguments={}, verbose=True):
                  'check_for_lowercase', 'check_for_digits_replaced_with_zeros', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
             parameters[k] = distutils.util.strtobool(v)
     if verbose: pprint(parameters)
+    # If loading pretrained model, set the model hyperparameters according to the pretraining parameters 
+    if parameters['use_pretrained_model']:
+        pretraining_parameters = load_parameters(parameters_filepath=os.path.join(parameters['pretrained_model_folder'], 'parameters.ini'), verbose=False)[0]
+        for name in ['use_character_lstm', 'character_embedding_dimension', 'character_lstm_hidden_state_dimension', 'token_embedding_dimension', 'token_lstm_hidden_state_dimension', 'use_crf']:
+            if parameters[name] != pretraining_parameters[name]:
+                print('WARNING: parameter {0} was overwritten from {1} to {2} to be consistent with the pretrained model'.format(name, parameters[name], pretraining_parameters[name]))
+                parameters[name] = pretraining_parameters[name]
+    # TODO: update conf_parameters to reflect the overriding
     return parameters, conf_parameters
 
 def get_valid_dataset_filepaths(parameters):
