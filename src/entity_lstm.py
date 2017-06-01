@@ -213,6 +213,7 @@ class EntityLSTM(object):
 
         self.define_training_procedure(parameters)
         self.summary_op = tf.summary.merge_all()
+        self.saver = tf.train.Saver(max_to_keep=parameters['maximum_number_of_epochs'])  # defaults to saving all variables
 
     def define_training_procedure(self, parameters):
         # Define training procedure
@@ -234,7 +235,6 @@ class EntityLSTM(object):
         # The global step will be automatically incremented by one every time you execute train_op.
         self.train_op = self.optimizer.apply_gradients(grads_and_vars, global_step=self.global_step)
 
-    # TODO: maybe move out of the class?
     def load_pretrained_token_embeddings(self, sess, dataset, parameters):
         if parameters['token_pretrained_embedding_filepath'] == '':
             return

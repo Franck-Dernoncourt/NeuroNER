@@ -11,7 +11,7 @@ import codecs
 import utils_nlp
 #from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 
-def train_step(sess, dataset, sequence_number, model, transition_params_trained, parameters):
+def train_step(sess, dataset, sequence_number, model, parameters):
     # Perform one iteration
     token_indices_sequence = dataset.token_indices['train'][sequence_number]
     for i, token_index in enumerate(token_indices_sequence):
@@ -115,7 +115,7 @@ def predict_labels(sess, model, transition_params_trained, parameters, dataset, 
     return y_pred, y_true, output_filepaths
 
 
-def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver):
+def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model):
     pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb')) 
     pretrained_model_checkpoint_filepath = os.path.join(parameters['pretrained_model_folder'], 'model.ckpt')
     
@@ -127,7 +127,7 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
     if pretraining_dataset.index_to_token == dataset.index_to_token and pretraining_dataset.index_to_character == dataset.index_to_character:
         
         # Restore the pretrained model
-        model_saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
+        model.saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
     
     # If the token and character mappings are different between the pretrained model and the current model
     else:
@@ -137,7 +137,7 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
         utils_tf.resize_tensor_variable(sess, model.token_embedding_weights, [pretraining_dataset.vocabulary_size, parameters['token_embedding_dimension']])
     
         # Restore the pretrained model
-        model_saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
+        model.saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
         
         # Get pretrained embeddings
         character_embedding_weights, token_embedding_weights = sess.run([model.character_embedding_weights, model.token_embedding_weights]) 

@@ -273,7 +273,7 @@ def main(argv=sys.argv):
     dataset.load_dataset(dataset_filepaths, parameters)
 
     # Create graph and session
-    with tf.Graph().as_default():
+    with tf.Graph().as_default(): # TODO: do we need to manually do this?
         session_conf = tf.ConfigProto(
             intra_op_parallelism_threads=parameters['number_of_cpu_threads'],
             inter_op_parallelism_threads=parameters['number_of_cpu_threads'],
@@ -285,6 +285,7 @@ def main(argv=sys.argv):
         sess = tf.Session(config=session_conf)
 
         with sess.as_default():
+            # TODO: determine whether we need the results to be saved for "predict" method
             # Initialize and save execution details
             start_time = time.time()
             experiment_timestamp = utils.get_current_time_in_miliseconds()
@@ -308,17 +309,27 @@ def main(argv=sys.argv):
             utils.create_folder_if_not_exists(model_folder)
             with open(os.path.join(model_folder, 'parameters.ini'), 'w') as parameters_file:
                 conf_parameters.write(parameters_file)
+                
             tensorboard_log_folder = os.path.join(stats_graph_folder, 'tensorboard_logs')
             utils.create_folder_if_not_exists(tensorboard_log_folder)
             tensorboard_log_folders = {}
             for dataset_type in dataset_filepaths.keys():
                 tensorboard_log_folders[dataset_type] = os.path.join(stats_graph_folder, 'tensorboard_logs', dataset_type)
                 utils.create_folder_if_not_exists(tensorboard_log_folders[dataset_type])
+            
             pickle.dump(dataset, open(os.path.join(model_folder, 'dataset.pickle'), 'wb'))
 
             # Instantiate the model
             # graph initialization should be before FileWriter, otherwise the graph will not appear in TensorBoard
             model = EntityLSTM(dataset, parameters)
+            # Initialize the model and restore from pretrained model if needed
+            sess.run(tf.global_variables_initializer())
+            if not parameters['use_pretrained_model']:
+                model.load_pretrained_token_embeddings(sess, dataset, parameters)
+#             transition_params_trained = np.random.rand(len(dataset.unique_labels)+2,len(dataset.unique_labels)+2)
+            else:
+                # Restore pretrained model parameters
+                transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model)
 
             # Instantiate the writers for TensorBoard
             writers = {}
@@ -354,16 +365,9 @@ def main(argv=sys.argv):
             character_list_file.close()
 
 
-            # Initialize the model
-            sess.run(tf.global_variables_initializer())
-            if not parameters['use_pretrained_model']:
-                model.load_pretrained_token_embeddings(sess, dataset, parameters)
-
             # Start training + evaluation loop. Each iteration corresponds to 1 epoch.
             bad_counter = 0 # number of epochs with no improvement on the validation test in terms of F1-score
             previous_best_valid_f1_score = 0
-            transition_params_trained = np.random.rand(len(dataset.unique_labels)+2,len(dataset.unique_labels)+2)
-            model_saver = tf.train.Saver(max_to_keep=parameters['maximum_number_of_epochs'])  # defaults to saving all variables
             epoch_number = -1
             try:
                 while True:
@@ -373,15 +377,12 @@ def main(argv=sys.argv):
 
                     epoch_start_time = time.time()
 
-                    if parameters['use_pretrained_model'] and epoch_number == 0:
-                        # Restore pretrained model parameters
-                        transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, model_saver)
-                    elif epoch_number != 0:
+                    if not parameters['use_pretrained_model'] or epoch_number != 0:
                         # Train model: loop over all sequences of training set with shuffling
                         sequence_numbers=list(range(len(dataset.token_indices['train'])))
                         random.shuffle(sequence_numbers)
                         for sequence_number in sequence_numbers:
-                            transition_params_trained = train.train_step(sess, dataset, sequence_number, model, transition_params_trained, parameters)
+                            transition_params_trained = train.train_step(sess, dataset, sequence_number, model, parameters)
                             step += 1
                             if step % 10 == 0:
                                 print('Training {0:.2f}% done'.format(step/len(sequence_numbers)*100), end='\r', flush=True)
@@ -399,7 +400,7 @@ def main(argv=sys.argv):
                         break
 
                     # Save model
-                    model_saver.save(sess, os.path.join(model_folder, 'model_{0:05d}.ckpt'.format(epoch_number)))
+                    model.saver.save(sess, os.path.join(model_folder, 'model_{0:05d}.ckpt'.format(epoch_number)))
 
                     # Save TensorBoard logs
                     summary = sess.run(model.summary_op, feed_dict=None)
