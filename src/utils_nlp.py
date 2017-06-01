@@ -5,6 +5,7 @@ import codecs
 import re
 import utils
 import os
+import numpy as np
 
 def load_tokens_from_pretrained_token_embeddings(parameters):
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
@@ -22,6 +23,7 @@ def load_tokens_from_pretrained_token_embeddings(parameters):
     file_input.close()
     return tokens
 
+
 def load_pretrained_token_embeddings(parameters):
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
     count = -1
@@ -33,10 +35,11 @@ def load_pretrained_token_embeddings(parameters):
         cur_line = cur_line.split(' ')
         if len(cur_line)==0:continue
         token = cur_line[0]
-        vector =cur_line[1:]
+        vector = np.array([float(x) for x in cur_line[1:]])
         token_to_vector[token] = vector
     file_input.close()
     return token_to_vector
+
 
 def is_token_in_pretrained_embeddings(token, all_pretrained_tokens, parameters):
     return token in all_pretrained_tokens or \
@@ -201,3 +204,4 @@ def convert_conll_from_bio_to_bioes(input_conll_filepath, output_conll_filepath)
     input_conll_file.close()
     output_conll_file.close()
     print("Done.")
+    
