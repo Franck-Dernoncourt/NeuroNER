@@ -89,7 +89,7 @@ def load_parameters(parameters_filepath, arguments={}, verbose=True):
     # If a parameter file is specified, load it
     if len(parameters_filepath) > 0:
         conf_parameters = configparser.ConfigParser()
-        conf_parameters.read(parameters_filepath)
+        conf_parameters.read(parameters_filepath, encoding="UTF-8")
         nested_parameters = utils.convert_configparser_to_dictionary(conf_parameters)
         for k,v in nested_parameters.items():
             parameters.update(v)
