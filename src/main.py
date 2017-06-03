@@ -270,7 +270,7 @@ def main(argv=sys.argv):
 
     # Load dataset
     dataset = ds.Dataset(verbose=parameters['verbose'], debug=parameters['debug'])
-    dataset.load_dataset(dataset_filepaths, parameters)
+    token_to_vector = dataset.load_dataset(dataset_filepaths, parameters)
 
     # Create graph and session
     with tf.Graph().as_default(): # TODO: do we need to manually do this?
@@ -286,6 +286,7 @@ def main(argv=sys.argv):
 
         with sess.as_default():
             # TODO: determine whether we need the results to be saved for "predict" method
+            ##### Probably only care about conll output and brat output
             # Initialize and save execution details
             start_time = time.time()
             experiment_timestamp = utils.get_current_time_in_miliseconds()
@@ -320,16 +321,15 @@ def main(argv=sys.argv):
             pickle.dump(dataset, open(os.path.join(model_folder, 'dataset.pickle'), 'wb'))
 
             # Instantiate the model
-            # graph initialization should be before FileWriter, otherwise the graph will not appear in TensorBoard
             model = EntityLSTM(dataset, parameters)
             # Initialize the model and restore from pretrained model if needed
             sess.run(tf.global_variables_initializer())
             if not parameters['use_pretrained_model']:
-                model.load_pretrained_token_embeddings(sess, dataset, parameters)
+                model.load_pretrained_token_embeddings(sess, dataset, parameters, token_to_vector)
 #             transition_params_trained = np.random.rand(len(dataset.unique_labels)+2,len(dataset.unique_labels)+2)
             else:
                 # Restore pretrained model parameters
-                transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model)
+                transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, token_to_vector=token_to_vector)
 
             # Instantiate the writers for TensorBoard
             writers = {}

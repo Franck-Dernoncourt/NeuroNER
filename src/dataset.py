@@ -61,16 +61,19 @@ class Dataset(object):
 
         return labels, tokens, token_count, label_count, character_count
 
-    def load_dataset(self, dataset_filepaths, parameters):
+    def load_dataset(self, dataset_filepaths, parameters, token_to_vector=None):
         '''
         dataset_filepaths : dictionary with keys 'train', 'valid', 'test', 'deploy'
         '''
         start_time = time.time()
         print('Load dataset... ', end='', flush=True)
-        all_pretrained_tokens = []
+#         all_pretrained_tokens = []
         if parameters['token_pretrained_embedding_filepath'] != '':
-            all_pretrained_tokens = utils_nlp.load_tokens_from_pretrained_token_embeddings(parameters)
-        if self.verbose: print("len(all_pretrained_tokens): {0}".format(len(all_pretrained_tokens)))
+            if token_to_vector==None:
+                token_to_vector = utils_nlp.load_pretrained_token_embeddings(parameters)
+        else:
+            token_to_vector = {}
+        if self.verbose: print("len(token_to_vector): {0}".format(len(token_to_vector)))
 
         # Load pretraining dataset to ensure that index to label is compatible to the pretrained model,
         #   and that token embeddings that are learned in the pretrained model are loaded properly.
@@ -132,7 +135,7 @@ class Dataset(object):
             if parameters['remap_unknown_tokens_to_unk'] == 1 and \
                 (token_count['train'][token] == 0 or \
                 parameters['load_only_pretrained_token_embeddings']) and \
-                not utils_nlp.is_token_in_pretrained_embeddings(token, all_pretrained_tokens, parameters) and \
+                not utils_nlp.is_token_in_pretrained_embeddings(token, token_to_vector, parameters) and \
                 token not in all_tokens_in_pretraining_dataset:
                 if self.verbose: print("token: {0}".format(token))
                 if self.verbose: print("token.lower(): {0}".format(token.lower()))
@@ -308,4 +311,6 @@ class Dataset(object):
 
         elapsed_time = time.time() - start_time
         print('done ({0:.2f} seconds)'.format(elapsed_time))
+        
+        return token_to_vector
 

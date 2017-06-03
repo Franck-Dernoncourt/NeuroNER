@@ -115,7 +115,8 @@ def predict_labels(sess, model, transition_params_trained, parameters, dataset, 
     return y_pred, y_true, output_filepaths
 
 
-def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model):
+# TODO: move to entity_lstm.py??
+def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, token_to_vector=None):
     pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb')) 
     pretrained_model_checkpoint_filepath = os.path.join(parameters['pretrained_model_folder'], 'model.ckpt')
     
@@ -150,7 +151,7 @@ def restore_model_parameters_from_pretrained_model(parameters, dataset, sess, mo
         sess.run(tf.variables_initializer([model.character_embedding_weights, model.token_embedding_weights]))
         
         # Load embedding weights from pretrained token embeddings first
-        model.load_pretrained_token_embeddings(sess, dataset, parameters) 
+        model.load_pretrained_token_embeddings(sess, dataset, parameters, token_to_vector=token_to_vector) 
         
         # Load embedding weights from pretrained model
         model.load_embeddings_from_pretrained_model(sess, dataset, pretraining_dataset, token_embedding_weights, embedding_type='token')

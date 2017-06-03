@@ -235,13 +235,14 @@ class EntityLSTM(object):
         # The global step will be automatically incremented by one every time you execute train_op.
         self.train_op = self.optimizer.apply_gradients(grads_and_vars, global_step=self.global_step)
 
-    def load_pretrained_token_embeddings(self, sess, dataset, parameters):
+    def load_pretrained_token_embeddings(self, sess, dataset, parameters, token_to_vector=None):
         if parameters['token_pretrained_embedding_filepath'] == '':
             return
         # Load embeddings
         start_time = time.time()
         print('Load token embeddings... ', end='', flush=True)
-        token_to_vector = utils_nlp.load_pretrained_token_embeddings(parameters)
+        if token_to_vector == None:
+            token_to_vector = utils_nlp.load_pretrained_token_embeddings(parameters)
 
         initial_weights = sess.run(self.token_embedding_weights.read_value())
         number_of_loaded_word_vectors = 0
