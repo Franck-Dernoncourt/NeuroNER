@@ -55,11 +55,12 @@ def load_parameters(parameters_filepath, arguments={}, verbose=True):
                   'check_for_lowercase':True,
                   'debug':False,
                   'dropout_rate':0.5,
-                  'experiment_name':'experiment',
+                  'experiment_name':'test',
                   'freeze_token_embeddings':False,
                   'gradient_clipping_value':5.0,
                   'learning_rate':0.005,
                   'load_only_pretrained_token_embeddings':False,
+                  'load_all_pretrained_token_embeddings':False,
                   'main_evaluation_mode':'conll',
                   'maximum_number_of_epochs':100,
                   'number_of_cpu_threads':8,
@@ -111,7 +112,7 @@ def load_parameters(parameters_filepath, arguments={}, verbose=True):
             parameters[k] = float(v)
         elif k in ['remap_unknown_tokens_to_unk', 'use_character_lstm', 'use_crf', 'train_model', 'use_pretrained_model', 'debug', 'verbose',
                  'reload_character_embeddings', 'reload_character_lstm', 'reload_token_embeddings', 'reload_token_lstm', 'reload_feedforward', 'reload_crf',
-                 'check_for_lowercase', 'check_for_digits_replaced_with_zeros', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
+                 'check_for_lowercase', 'check_for_digits_replaced_with_zeros', 'freeze_token_embeddings', 'load_only_pretrained_token_embeddings', 'load_all_pretrained_token_embeddings']:
             parameters[k] = distutils.util.strtobool(v)
     # If loading pretrained model, set the model hyperparameters according to the pretraining parameters 
     if parameters['use_pretrained_model']:
@@ -218,6 +219,7 @@ def parse_arguments(arguments=None):
     parser.add_argument('--gradient_clipping_value', required=False, default=argument_default_value, help='')
     parser.add_argument('--learning_rate', required=False, default=argument_default_value, help='')
     parser.add_argument('--load_only_pretrained_token_embeddings', required=False, default=argument_default_value, help='')
+    parser.add_argument('--load_all_pretrained_token_embeddings', required=False, default=argument_default_value, help='')
     parser.add_argument('--main_evaluation_mode', required=False, default=argument_default_value, help='')
     parser.add_argument('--maximum_number_of_epochs', required=False, default=argument_default_value, help='')
     parser.add_argument('--number_of_cpu_threads', required=False, default=argument_default_value, help='')
@@ -330,7 +332,8 @@ def main(argv=sys.argv):
             else:
                 # Restore pretrained model parameters
                 transition_params_trained = train.restore_model_parameters_from_pretrained_model(parameters, dataset, sess, model, token_to_vector=token_to_vector)
-
+            del token_to_vector
+            
             # Instantiate the writers for TensorBoard
             writers = {}
             for dataset_type in dataset_filepaths.keys():

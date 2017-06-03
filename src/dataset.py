@@ -58,7 +58,7 @@ class Dataset(object):
             if len(new_token_sequence) > 0:
                 labels.append(new_label_sequence)
                 tokens.append(new_token_sequence)
-
+            f.close()
         return labels, tokens, token_count, label_count, character_count
 
     def load_dataset(self, dataset_filepaths, parameters, token_to_vector=None):
@@ -105,6 +105,12 @@ class Dataset(object):
         token_count['all'] = {}
         for token in list(token_count['train'].keys()) + list(token_count['valid'].keys()) + list(token_count['test'].keys()) + list(token_count['deploy'].keys()):
             token_count['all'][token] = token_count['train'][token] + token_count['valid'][token] + token_count['test'][token] + token_count['deploy'][token]
+        
+        if parameters['load_all_pretrained_token_embeddings']:
+            for token in token_to_vector:
+                if token not in token_count['all']:
+                    token_count['all'][token] = -1
+                    token_count['train'][token] = -1
 
         for dataset_type in dataset_filepaths.keys():
             if self.verbose: print("dataset_type: {0}".format(dataset_type))
