@@ -16,7 +16,7 @@ def train_step(sess, dataset, sequence_number, model, parameters):
     token_indices_sequence = dataset.token_indices['train'][sequence_number]
     for i, token_index in enumerate(token_indices_sequence):
         if token_index in dataset.infrequent_token_indices and np.random.uniform() < 0.5:
-            token_indices_sequence[i] = dataset.token_to_index[dataset.UNK]
+            token_indices_sequence[i] = dataset.UNK_TOKEN_INDEX
     feed_dict = {
       model.input_token_indices: token_indices_sequence,
       model.input_label_indices_vector: dataset.label_vector_indices['train'][sequence_number],

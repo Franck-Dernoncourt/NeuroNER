@@ -78,9 +78,11 @@ class Dataset(object):
         # Load pretraining dataset to ensure that index to label is compatible to the pretrained model,
         #   and that token embeddings that are learned in the pretrained model are loaded properly.
         all_tokens_in_pretraining_dataset = []
+        all_characters_in_pretraining_dataset = []
         if parameters['use_pretrained_model']:
             pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb'))
             all_tokens_in_pretraining_dataset = pretraining_dataset.index_to_token.values()
+            all_characters_in_pretraining_dataset = pretraining_dataset.index_to_character.values()
 
         remap_to_unk_count_threshold = 1
         self.UNK_TOKEN_INDEX = 0
@@ -111,14 +113,23 @@ class Dataset(object):
                 if token not in token_count['all']:
                     token_count['all'][token] = -1
                     token_count['train'][token] = -1
-
-        for dataset_type in dataset_filepaths.keys():
-            if self.verbose: print("dataset_type: {0}".format(dataset_type))
-            if self.verbose: print("len(token_count[dataset_type]): {0}".format(len(token_count[dataset_type])))
+            for token in all_tokens_in_pretraining_dataset:
+                if token not in token_count['all']:
+                    token_count['all'][token] = -1
+                    token_count['train'][token] = -1
 
         character_count['all'] = {}
         for character in list(character_count['train'].keys()) + list(character_count['valid'].keys()) + list(character_count['test'].keys()) + list(character_count['deploy'].keys()):
             character_count['all'][character] = character_count['train'][character] + character_count['valid'][character] + character_count['test'][character] + character_count['deploy'][character]
+
+        for character in all_characters_in_pretraining_dataset:
+            if character not in character_count['all']:
+                character_count['all'][character] = -1
+                character_count['train'][character] = -1
+
+        for dataset_type in dataset_filepaths.keys():
+            if self.verbose: print("dataset_type: {0}".format(dataset_type))
+            if self.verbose: print("len(token_count[dataset_type]): {0}".format(len(token_count[dataset_type])))
 
         label_count['all'] = {}
         for character in list(label_count['train'].keys()) + list(label_count['valid'].keys()) + list(label_count['test'].keys()) + list(label_count['deploy'].keys()):
