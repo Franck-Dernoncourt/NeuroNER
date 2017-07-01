@@ -176,13 +176,24 @@ This starts a web server that is accessible at http://127.0.0.1:6006 from your w
 
 ## Citation
 
-If you use NeuroNER in your publications, please cite this [technical report](https://arxiv.org/abs/1705.05487):
+If you use NeuroNER in your publications, please cite this [paper](https://arxiv.org/abs/1705.05487):
 
 ```
 @article{2017neuroner,
   title={{NeuroNER}: an easy-to-use program for named-entity recognition based on neural networks},
   author={Dernoncourt, Franck and Lee, Ji Young and Szolovits, Peter},
-  journal={arXiv:1705.05487},
+  journal={Conference on Empirical Methods on Natural Language Processing (EMNLP)},
   year={2017}
+}
+```
+
+The neural network architecture used in NeuroNER is described in this [article](https://arxiv.org/abs/1606.03475):
+
+```
+@article{2016deidentification,
+  title={De-identification of Patient Notes with Recurrent Neural Networks},
+  author={Dernoncourt, Franck and Lee, Ji Young and Uzuner, Ozlem and Szolovits, Peter},
+  journal={Journal of the American Medical Informatics Association (JAMIA)},
+  year={2016}
 }
 ```
