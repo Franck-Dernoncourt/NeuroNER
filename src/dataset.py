@@ -8,6 +8,7 @@ import time
 import token
 import os
 import pickle
+import random
 
 
 class Dataset(object):
@@ -82,9 +83,9 @@ class Dataset(object):
             token_lengths[dataset_type] = []
             character_indices_padded[dataset_type] = []
             for token_sequence in tokens[dataset_type]:
-                token_indices[dataset_type].append([token_to_index[token] for token in token_sequence])
+                token_indices[dataset_type].append([token_to_index.get(token, self.UNK_TOKEN_INDEX) for token in token_sequence])
                 characters[dataset_type].append([list(token) for token in token_sequence])
-                character_indices[dataset_type].append([[character_to_index[character] for character in token] for token in token_sequence])
+                character_indices[dataset_type].append([[character_to_index.get(character, random.randint(1, max(self.index_to_character.keys()))) for character in token] for token in token_sequence])
                 token_lengths[dataset_type].append([len(token) for token in token_sequence])
                 longest_token_length_in_sequence = max(token_lengths[dataset_type][-1])
                 character_indices_padded[dataset_type].append([utils.pad_list(temp_token_indices, longest_token_length_in_sequence, self.PADDING_CHARACTER_INDEX) for temp_token_indices in character_indices[dataset_type][-1]])
@@ -120,6 +121,24 @@ class Dataset(object):
             print('len(label_vector_indices[\'train\']): {0}'.format(len(label_vector_indices['train'])))
             
         return token_indices, label_indices, character_indices_padded, character_indices, token_lengths, characters, label_vector_indices
+
+    def update_dataset(self, dataset_filepaths, dataset_types):
+        '''
+        dataset_filepaths : dictionary with keys 'train', 'valid', 'test', 'deploy'
+        Overwrites the data of type specified in dataset_types using the existing token_to_index, character_to_index, and label_to_index mappings. 
+        '''
+        for dataset_type in dataset_types:
+            self.labels[dataset_type], self.tokens[dataset_type], _, _, _ = self._parse_dataset(dataset_filepaths.get(dataset_type, None))
+        
+        token_indices, label_indices, character_indices_padded, character_indices, token_lengths, characters, label_vector_indices = self._convert_to_indices(dataset_types)
+        
+        self.token_indices.update(token_indices)
+        self.label_indices.update(label_indices)
+        self.character_indices_padded.update(character_indices_padded)
+        self.character_indices.update(character_indices)
+        self.token_lengths.update(token_lengths)
+        self.characters.update(characters)
+        self.label_vector_indices.update(label_vector_indices)
 
     def load_dataset(self, dataset_filepaths, parameters, token_to_vector=None):
         '''

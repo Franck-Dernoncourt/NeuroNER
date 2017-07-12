@@ -1,10 +1,10 @@
 import tensorflow as tf
-import numpy as np
-import codecs
 import re
 import time
 import utils_tf
 import utils_nlp
+import os
+import pickle
 
 def bidirectional_LSTM(input, hidden_state_dimension, initializer, sequence_length=None, output_sequence=True):
 
@@ -312,3 +312,68 @@ class EntityLSTM(object):
             print("dataset.alphabet_size: {0}".format(dataset.alphabet_size))
         sess.run(embedding_weights.assign(initial_weights))
 
+    def restore_from_pretrained_model(self, parameters, dataset, sess, token_to_vector=None):
+        pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb')) 
+        pretrained_model_checkpoint_filepath = os.path.join(parameters['pretrained_model_folder'], 'model.ckpt')
+        
+        # Assert that the label sets are the same
+        # Test set should have the same label set as the pretrained dataset
+        assert pretraining_dataset.index_to_label == dataset.index_to_label
+    
+        # If the token and character mappings are exactly the same
+        if pretraining_dataset.index_to_token == dataset.index_to_token and pretraining_dataset.index_to_character == dataset.index_to_character:
+            
+            # Restore the pretrained model
+            self.saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
+        
+        # If the token and character mappings are different between the pretrained model and the current model
+        else:
+            
+            # Resize the token and character embedding weights to match them with the pretrained model (required in order to restore the pretrained model)
+            utils_tf.resize_tensor_variable(sess, self.character_embedding_weights, [pretraining_dataset.alphabet_size, parameters['character_embedding_dimension']])
+            utils_tf.resize_tensor_variable(sess, self.token_embedding_weights, [pretraining_dataset.vocabulary_size, parameters['token_embedding_dimension']])
+        
+            # Restore the pretrained model
+            self.saver.restore(sess, pretrained_model_checkpoint_filepath) # Works only when the dimensions of tensor variables are matched.
+            
+            # Get pretrained embeddings
+            character_embedding_weights, token_embedding_weights = sess.run([self.character_embedding_weights, self.token_embedding_weights]) 
+            
+            # Restore the sizes of token and character embedding weights
+            utils_tf.resize_tensor_variable(sess, self.character_embedding_weights, [dataset.alphabet_size, parameters['character_embedding_dimension']])
+            utils_tf.resize_tensor_variable(sess, self.token_embedding_weights, [dataset.vocabulary_size, parameters['token_embedding_dimension']]) 
+            
+            # Re-initialize the token and character embedding weights
+            sess.run(tf.variables_initializer([self.character_embedding_weights, self.token_embedding_weights]))
+            
+            # Load embedding weights from pretrained token embeddings first
+            self.load_pretrained_token_embeddings(sess, dataset, parameters, token_to_vector=token_to_vector) 
+            
+            # Load embedding weights from pretrained model
+            self.load_embeddings_from_pretrained_model(sess, dataset, pretraining_dataset, token_embedding_weights, embedding_type='token')
+            self.load_embeddings_from_pretrained_model(sess, dataset, pretraining_dataset, character_embedding_weights, embedding_type='character') 
+            
+            del pretraining_dataset
+            del character_embedding_weights
+            del token_embedding_weights
+        
+        # Get transition parameters
+        transition_params_trained = sess.run(self.transition_parameters)
+        
+        if not parameters['reload_character_embeddings']:
+            sess.run(tf.variables_initializer([self.character_embedding_weights]))
+        if not parameters['reload_character_lstm']:
+            sess.run(tf.variables_initializer(self.character_lstm_variables))
+        if not parameters['reload_token_embeddings']:
+            sess.run(tf.variables_initializer([self.token_embedding_weights]))
+        if not parameters['reload_token_lstm']:
+            sess.run(tf.variables_initializer(self.token_lstm_variables))
+        if not parameters['reload_feedforward']:
+            sess.run(tf.variables_initializer(self.feedforward_variables))
+        if not parameters['reload_crf']:
+            sess.run(tf.variables_initializer(self.crf_variables))
+    
+        return transition_params_trained
+    
+    
+    

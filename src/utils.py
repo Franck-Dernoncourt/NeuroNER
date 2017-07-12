@@ -105,6 +105,13 @@ def convert_configparser_to_dictionary(config):
     my_config_parser_dict = {s:dict(config.items(s)) for s in config.sections()}
     return my_config_parser_dict
 
+def get_parameter_to_section_of_configparser(config):
+    parameter_to_section = {}
+    for s in config.sections():
+        for p, _ in config.items(s):
+            parameter_to_section[p] = s
+    return parameter_to_section
+
 
 def copytree(src, dst, symlinks=False, ignore=None):
     '''
