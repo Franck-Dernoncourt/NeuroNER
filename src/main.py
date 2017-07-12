@@ -12,11 +12,6 @@ from argparse import RawTextHelpFormatter
 import sys
 from neuroner import NeuroNER
 
-# http://stackoverflow.com/questions/42217532/tensorflow-version-1-0-0-rc2-on-windows-opkernel-op-bestsplits-device-typ
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-print('NeuroNER version: {0}'.format('1.0-dev'))
-print('TensorFlow version: {0}'.format(tf.__version__))
-
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -174,7 +169,7 @@ def check_parameter_compatiblity(parameters, dataset_filepaths):
 
     if parameters['gradient_clipping_value'] < 0:
         parameters['gradient_clipping_value'] = abs(parameters['gradient_clipping_value'])
->>>>>>> origin/master
+        
 
 def parse_arguments(arguments=None):
     ''' Parse the NeuroNER arguments
