@@ -44,7 +44,7 @@ sudo apt-get install cuda
 To install a few more packages which NeuroNER depends on:
 
 ```
-sudo pip3 install -U networkx matplotlib scikit-learn scipy
+sudo pip3 install -U networkx matplotlib scikit-learn scipy pycorenlp
 
 # Installing SpaCy
 sudo apt-get install -y build-essential python3.5-dev
