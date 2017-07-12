@@ -10,9 +10,7 @@ import os
 import argparse
 from argparse import RawTextHelpFormatter
 import sys
-<<<<<<< HEAD
 from neuroner import NeuroNER
-=======
 
 # http://stackoverflow.com/questions/42217532/tensorflow-version-1-0-0-rc2-on-windows-opkernel-op-bestsplits-device-typ
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
