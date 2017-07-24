@@ -1,14 +1,17 @@
-import sklearn.preprocessing
-import utils
-import collections
 import codecs
-import utils_nlp
-import re
-import time
-import token
+import collections
+import multiprocessing
 import os
 import pickle
 import random
+import re
+import time
+from functools import partial
+
+import sklearn.preprocessing
+
+import utils
+import utils_nlp
 
 
 class Dataset(object):
@@ -52,7 +55,7 @@ class Dataset(object):
                 for character in token:
                     character_count[character] += 1
 
-                if self.debug and line_count > 200: break# for debugging purposes
+                if self.debug and line_count > 200: break  # for debugging purposes
 
             if len(new_token_sequence) > 0:
                 labels.append(new_label_sequence)
@@ -60,15 +63,29 @@ class Dataset(object):
             f.close()
         return labels, tokens, token_count, label_count, character_count
 
+    def _token_to_indices(self, token_sequence, token_to_index, character_to_index):
+        token_index = [token_to_index.get(token, self.UNK_TOKEN_INDEX) for token in token_sequence]
+        characters = [list(token) for token in token_sequence]
+        character_index = [
+            [character_to_index.get(character, random.randint(1, max(self.index_to_character.keys()))) for character in
+             token] for token in token_sequence]
+        token_lengths = [len(token) for token in token_sequence]
 
-    def _convert_to_indices(self, dataset_types):
+        longest_token_length_in_sequence = max(token_lengths)
+        character_index_padded = [
+            utils.pad_list(temp_token_indices, longest_token_length_in_sequence, self.PADDING_CHARACTER_INDEX) for
+            temp_token_indices in character_index]
+
+        return token_index, characters, character_index, token_lengths, character_index_padded
+
+    def _convert_to_indices(self, dataset_types, parameters):
         tokens = self.tokens
         labels = self.labels
         token_to_index = self.token_to_index
         character_to_index = self.character_to_index
         label_to_index = self.label_to_index
         index_to_label = self.index_to_label
-        
+
         # Map tokens and labels to their indices
         token_indices = {}
         label_indices = {}
@@ -76,24 +93,31 @@ class Dataset(object):
         token_lengths = {}
         character_indices = {}
         character_indices_padded = {}
+        pool = multiprocessing.Pool(parameters['number_of_cpu_threads'])
+
         for dataset_type in dataset_types:
             token_indices[dataset_type] = []
             characters[dataset_type] = []
             character_indices[dataset_type] = []
             token_lengths[dataset_type] = []
             character_indices_padded[dataset_type] = []
-            for token_sequence in tokens[dataset_type]:
-                token_indices[dataset_type].append([token_to_index.get(token, self.UNK_TOKEN_INDEX) for token in token_sequence])
-                characters[dataset_type].append([list(token) for token in token_sequence])
-                character_indices[dataset_type].append([[character_to_index.get(character, random.randint(1, max(self.index_to_character.keys()))) for character in token] for token in token_sequence])
-                token_lengths[dataset_type].append([len(token) for token in token_sequence])
-                longest_token_length_in_sequence = max(token_lengths[dataset_type][-1])
-                character_indices_padded[dataset_type].append([utils.pad_list(temp_token_indices, longest_token_length_in_sequence, self.PADDING_CHARACTER_INDEX) for temp_token_indices in character_indices[dataset_type][-1]])
-            
+
+            token_index, dataset_characters, character_index, dataset_token_lengths, character_index_padded = \
+                zip(*pool.map(partial(self._token_to_indices, token_to_index=token_to_index,
+                                      character_to_index=character_to_index), tokens[dataset_type]))
+
+            token_indices[dataset_type] = token_index
+            characters[dataset_type] = dataset_characters
+            character_indices[dataset_type] = character_index
+            token_lengths[dataset_type] = dataset_token_lengths
+            character_indices_padded[dataset_type] = character_index_padded
+
             label_indices[dataset_type] = []
             for label_sequence in labels[dataset_type]:
                 label_indices[dataset_type].append([label_to_index[label] for label in label_sequence])
-        
+
+        pool.close()
+
         if self.verbose:
             print('token_lengths[\'train\'][0][0:10]: {0}'.format(token_lengths['train'][0][0:10]))
         if self.verbose:
@@ -114,24 +138,26 @@ class Dataset(object):
             label_vector_indices[dataset_type] = []
             for label_indices_sequence in label_indices[dataset_type]:
                 label_vector_indices[dataset_type].append(label_binarizer.transform(label_indices_sequence))
-        
+
         if self.verbose:
             print('label_vector_indices[\'train\'][0:2]: {0}'.format(label_vector_indices['train'][0:2]))
         if self.verbose:
             print('len(label_vector_indices[\'train\']): {0}'.format(len(label_vector_indices['train'])))
-            
+
         return token_indices, label_indices, character_indices_padded, character_indices, token_lengths, characters, label_vector_indices
 
-    def update_dataset(self, dataset_filepaths, dataset_types):
+    def update_dataset(self, dataset_filepaths, dataset_types, parameters):
         '''
         dataset_filepaths : dictionary with keys 'train', 'valid', 'test', 'deploy'
         Overwrites the data of type specified in dataset_types using the existing token_to_index, character_to_index, and label_to_index mappings. 
         '''
         for dataset_type in dataset_types:
-            self.labels[dataset_type], self.tokens[dataset_type], _, _, _ = self._parse_dataset(dataset_filepaths.get(dataset_type, None))
-        
-        token_indices, label_indices, character_indices_padded, character_indices, token_lengths, characters, label_vector_indices = self._convert_to_indices(dataset_types)
-        
+            self.labels[dataset_type], self.tokens[dataset_type], _, _, _ = self._parse_dataset(
+                dataset_filepaths.get(dataset_type, None))
+
+        token_indices, label_indices, character_indices_padded, character_indices, token_lengths, characters, label_vector_indices = self._convert_to_indices(
+            dataset_types, parameters)
+
         self.token_indices.update(token_indices)
         self.label_indices.update(label_indices)
         self.character_indices_padded.update(character_indices_padded)
@@ -147,7 +173,7 @@ class Dataset(object):
         start_time = time.time()
         print('Load dataset... ', end='', flush=True)
         if parameters['token_pretrained_embedding_filepath'] != '':
-            if token_to_vector==None:
+            if token_to_vector == None:
                 token_to_vector = utils_nlp.load_pretrained_token_embeddings(parameters)
         else:
             token_to_vector = {}

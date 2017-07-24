@@ -41,25 +41,16 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
     output_file = codecs.open(output_filepath, 'w', 'UTF-8')
     original_conll_file = codecs.open(dataset_filepaths[dataset_type], 'r', 'UTF-8')
 
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-    scores_and_predictions = []
-
     for i in range(len(dataset.token_indices[dataset_type])):
         feed_dict = {
-            model.input_token_indices: dataset.token_indices[dataset_type][i],
-            model.input_token_character_indices: dataset.character_indices_padded[dataset_type][i],
-            model.input_token_lengths: dataset.token_lengths[dataset_type][i],
-            model.input_label_indices_vector: dataset.label_vector_indices[dataset_type][i],
+            model.input_token_indices: dataset.token_indices[dataset_type][i+1:i+3],
+            model.input_token_character_indices: dataset.character_indices_padded[dataset_type][i+1:i+3],
+            model.input_token_lengths: dataset.token_lengths[dataset_type][i+1:i+3],
+            model.input_label_indices_vector: dataset.label_vector_indices[dataset_type][i+1:i+3],
             model.dropout_keep_prob: 1.
         }
         unary_scores, predictions = sess.run([model.unary_scores, model.predictions], feed_dict)
-        scores_and_predictions.append((unary_scores, predictions))
 
-    coord.request_stop()
-    coord.join(threads)
-
-    for i, (unary_scores, predictions) in enumerate(scores_and_predictions):
         if parameters['use_crf']:
             predictions, _ = tf.contrib.crf.viterbi_decode(unary_scores, transition_params_trained)
             predictions = predictions[1:-1]
@@ -84,11 +75,11 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
                     if parameters['tagging_format'] == 'bioes':
                         split_line.pop()
                     gold_label_original = split_line[-1]
-                    assert(token == token_original and gold_label == gold_label_original) 
-                    break            
+                    assert (token == token_original and gold_label == gold_label_original)
+                    break
             split_line.append(prediction)
             output_string += ' '.join(split_line) + '\n'
-        output_file.write(output_string+'\n')
+        output_file.write(output_string + '\n')
 
         all_predictions.extend(predictions)
         all_y_true.extend(dataset.label_indices[dataset_type][i])

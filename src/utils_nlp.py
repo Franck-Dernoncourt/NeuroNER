@@ -33,7 +33,7 @@ def line_to_token_and_vector(line):
     line = line.split(' ')
     if len(line) == 0: return (None, None)
     token = line[0]
-    vector = np.array(map(np.float32, line[1:]))
+    vector = np.array(list(map(float, line[1:])))
     return token, vector
 
 def load_pretrained_token_embeddings(parameters):

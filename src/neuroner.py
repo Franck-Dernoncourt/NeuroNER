@@ -438,7 +438,7 @@ class NeuroNER(object):
         for dataset_type in dataset_filepaths.keys():
             writers[dataset_type].close()
 
-    def predict(self, text):
+    def predict(self, text, parameters):
         self.prediction_count += 1        
         
         if self.prediction_count == 1:
@@ -464,7 +464,7 @@ class NeuroNER(object):
         self.dataset_filepaths.update(dataset_filepaths)
         self.dataset_brat_folders.update(dataset_brat_folders)        
         ### Update the dataset for the new deploy set
-        self.dataset.update_dataset(self.dataset_filepaths, [dataset_type])
+        self.dataset.update_dataset(self.dataset_filepaths, [dataset_type], parameters)
         
         # Predict labels and output brat
         output_filepaths = {}
