@@ -43,10 +43,10 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
 
     for i in range(len(dataset.token_indices[dataset_type])):
         feed_dict = {
-            model.input_token_indices: dataset.token_indices[dataset_type][i+1:i+3],
-            model.input_token_character_indices: dataset.character_indices_padded[dataset_type][i+1:i+3],
-            model.input_token_lengths: dataset.token_lengths[dataset_type][i+1:i+3],
-            model.input_label_indices_vector: dataset.label_vector_indices[dataset_type][i+1:i+3],
+            model.input_token_indices: dataset.token_indices[dataset_type][i],
+            model.input_token_character_indices: dataset.character_indices_padded[dataset_type][i],
+            model.input_token_lengths: dataset.token_lengths[dataset_type][i],
+            model.input_label_indices_vector: dataset.label_vector_indices[dataset_type][i],
             model.dropout_keep_prob: 1.
         }
         unary_scores, predictions = sess.run([model.unary_scores, model.predictions], feed_dict)
