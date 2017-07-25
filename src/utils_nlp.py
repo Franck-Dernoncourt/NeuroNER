@@ -40,7 +40,7 @@ def load_pretrained_token_embeddings(parameters):
 
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
 
-    lines = file_input.readlines()
+    lines = file_input.readlines()[:1000] if parameters['debug'] else file_input.readlines()
     pool = multiprocessing.Pool(parameters['number_of_cpu_threads'])
 
     token_to_vector = dict(pool.map(line_to_token_and_vector, lines))
