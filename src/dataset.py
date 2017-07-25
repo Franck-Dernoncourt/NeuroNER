@@ -185,8 +185,8 @@ class Dataset(object):
         all_tokens_in_pretraining_dataset = []
         all_characters_in_pretraining_dataset = []
         if parameters['use_pretrained_model']:
-            pretraining_dataset = pickle.load(
-                open(os.path.join(parameters['pretrained_model_folder'], 'dataset.pickle'), 'rb'))
+            pretraining_dataset = pickle.load(open(os.path.join(parameters['pretrained_model_folder'],
+                                                                'dataset.pickle'), 'rb'))
             all_tokens_in_pretraining_dataset = pretraining_dataset.index_to_token.values()
             all_characters_in_pretraining_dataset = pretraining_dataset.index_to_character.values()
 
@@ -210,10 +210,10 @@ class Dataset(object):
             if self.verbose: print("len(token_count[dataset_type]): {0}".format(len(token_count[dataset_type])))
 
         token_count['all'] = {}
-        for token in list(token_count['train'].keys()) + list(token_count['valid'].keys()) + list(
-                token_count['test'].keys()) + list(token_count['deploy'].keys()):
-            token_count['all'][token] = token_count['train'][token] + token_count['valid'][token] + token_count['test'][
-                token] + token_count['deploy'][token]
+        for token in list(token_count['train'].keys()) + list(token_count['valid'].keys()) +\
+                list(token_count['test'].keys()) + list(token_count['deploy'].keys()):
+            token_count['all'][token] = token_count['train'][token] + token_count['valid'][token] +\
+                                        token_count['test'][token] + token_count['deploy'][token]
 
         if parameters['load_all_pretrained_token_embeddings']:
             for token in token_to_vector:
