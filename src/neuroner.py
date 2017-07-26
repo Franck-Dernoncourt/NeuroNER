@@ -388,7 +388,13 @@ class NeuroNER(object):
                 epoch_elapsed_training_time = time.time() - epoch_start_time
                 print('Training completed in {0:.2f} seconds'.format(epoch_elapsed_training_time), flush=True)
 
-                y_pred, y_true, output_filepaths = train.predict_labels(sess, model, transition_params_trained, parameters, dataset, epoch_number, stats_graph_folder, dataset_filepaths)
+                predict_start_time = time.time()
+                torch_y_pred, torch_y_true, torch_output_filepaths = torch_train.predict_labels(torch_model, transition_params_trained,
+                                                                        parameters, dataset, epoch_number,
+                                                                        stats_graph_folder, dataset_filepaths)
+
+                elapsed_predict_time = time.time() - predict_start_time
+                print('Prediction completed in {0:.2f} seconds'.format(elapsed_predict_time), flush=True)
 
                 # Evaluate model: save and plot results
                 evaluate.evaluate_model(results, dataset, y_pred, y_true, stats_graph_folder, epoch_number, epoch_start_time, output_filepaths, parameters)
