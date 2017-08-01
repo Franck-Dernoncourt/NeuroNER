@@ -55,7 +55,7 @@ wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/instal
 
 ## Downloading NeuroNER
 
-To download NeuroNER code, download and unzip http://neuroner.com/NeuroNER-master.zip, which can be done on Ubuntu and Mac OS X with:
+To download NeuroNER code, download and unzip https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip, which can be done on Ubuntu and Mac OS X with:
 
 ```
 wget https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip
