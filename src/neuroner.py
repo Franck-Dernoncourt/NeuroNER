@@ -19,7 +19,7 @@ import pickle
 import brat_to_conll
 import numpy as np
 import utils_nlp
-import distutils
+import distutils.util
 import configparser
 from pprint import pprint
 # http://stackoverflow.com/questions/42217532/tensorflow-version-1-0-0-rc2-on-windows-opkernel-op-bestsplits-device-typ
