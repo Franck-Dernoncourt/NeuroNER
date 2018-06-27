@@ -42,8 +42,6 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
     output_filepath = os.path.join(stats_graph_folder, '{1:03d}_{0}.txt'.format(dataset_type,epoch_number))
     output_file = codecs.open(output_filepath, 'w', 'UTF-8')
     original_conll_file = codecs.open(dataset_filepaths[dataset_type], 'r', 'UTF-8')
-    #print("PrintingDataset")
-    #print(dataset.index_to_label)
     minmax_unary_scores = []
     normalize_unary_scores = []
     #assert(len(dataset.token_indices[dataset_type]) == 1),"lines more than 1!"
@@ -57,8 +55,6 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
         }
         unary_scores, predictions = sess.run([model.unary_scores, model.predictions], feed_dict)
         nn_predictions = predictions.tolist()
-        #print(unary_scores)
-        #print(predictions)
         if parameters['use_crf']:
             predictions, _ = tf.contrib.crf.viterbi_decode(unary_scores, transition_params_trained)
             predictions = predictions[1:-1]

@@ -15,7 +15,6 @@ def get_start_and_end_offset_of_token_from_spacy(token):
 
 def get_sentences_and_tokens_from_spacy(text, spacy_nlp):
     document = spacy_nlp(text)
-    # sentences
     sentences = []
     for span in document.sents:
         sentence = [document[i] for i in range(span.start, span.end)]
