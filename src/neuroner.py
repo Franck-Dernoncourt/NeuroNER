@@ -1,5 +1,7 @@
 import matplotlib
+import gc
 matplotlib.use('Agg')
+from distutils import util
 import train
 import dataset as ds
 import tensorflow as tf
@@ -468,14 +470,14 @@ class NeuroNER(object):
         
         # Predict labels and output brat
         output_filepaths = {}
-        prediction_output = train.prediction_step(self.sess, self.dataset, dataset_type, self.model, self.transition_params_trained, self.stats_graph_folder, self.prediction_count, self.parameters, self.dataset_filepaths)
-        _, _, output_filepaths[dataset_type] = prediction_output
+        prediction_output = train.prediction_step(self.sess, self.dataset, dataset_type, self.model, self.transition_params_trained, self.stats_graph_folder, self.prediction_count, self.parameters, self.dataset_filepaths,prediction_flag=True)
+        _, _, output_filepaths[dataset_type], _scores, _indices = prediction_output
         conll_to_brat.output_brat(output_filepaths, self.dataset_brat_folders, self.stats_graph_folder, overwrite=True)
         
         # Print and output result
         text_filepath = os.path.join(self.stats_graph_folder, 'brat', 'deploy', os.path.basename(dataset_brat_deploy_filepath))
         annotation_filepath = os.path.join(self.stats_graph_folder, 'brat', 'deploy', '{0}.ann'.format(utils.get_basename_without_extension(dataset_brat_deploy_filepath)))
-        text2, entities = brat_to_conll.get_entities_from_brat(text_filepath, annotation_filepath, verbose=True)
+        text2, entities = brat_to_conll.get_entities_from_brat(text_filepath, annotation_filepath, verbose=True, scores=_scores, indices=_indices)
         assert(text == text2)
         return entities
     
@@ -488,4 +490,4 @@ class NeuroNER(object):
     def __del__(self):
         self.sess.close()
     
-
+gc.collect()
