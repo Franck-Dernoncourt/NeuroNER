@@ -66,10 +66,40 @@ def get_sentences_and_tokens_from_stanford(text, core_nlp):
         sentences.append(tokens)
     return sentences
 
-def get_entities_from_brat(text_filepath, annotation_filepath, verbose=False):
+def get_entities_from_brat(text_filepath, annotation_filepath, verbose=False, scores = False, indices = False):
     # load text
     with codecs.open(text_filepath, 'r', 'UTF-8') as f:
         text =f.read()
+
+    index_score_map = {}
+
+    if scores:
+        num_scores = len(scores)
+        num_indices = len(indices)
+        assert(num_scores == num_indices), "scores are not in sync with text!"
+
+        cum_scores = [-1]*num_scores
+        cum_scores[0] = scores[0]
+        for i in range(1, num_scores):
+            cum_scores[i] = cum_scores[i-1] + scores[i]
+
+        index_score_map = {}
+        i = 0
+        while i < num_scores:
+            st = indices[i][0]
+            j = i
+            while j < num_scores:
+                ed = indices[j][1]
+                try:
+                    tag_score = float(cum_scores[j] - cum_scores[i]  + scores[i]) / (j-i+1) # tag score, considering avg.
+                except:
+                    import pdb; pdb.set_trace()
+                key = "%s-%s" % (st, ed)
+                index_score_map[key] = tag_score
+                j += 1
+            i += 1            
+        
+        
     if verbose: print("\ntext:\n{0}\n".format(text))
 
     # parse annotation file
@@ -86,6 +116,11 @@ def get_entities_from_brat(text_filepath, annotation_filepath, verbose=False):
                 entity['start'] = int(anno[2])
                 entity['end'] = int(anno[3])
                 entity['text'] = ' '.join(anno[4:])
+                key = "%s-%s" % (anno[2], anno[3])
+                entity_score = index_score_map.get(key, "no score from model")
+                if entity_score != "no score from model":
+                    entity_score = float("{0:.3f}".format(entity_score))
+                entity['score'] = entity_score
                 if verbose:
                     print("entity: {0}".format(entity))
                 # Check compatibility between brat text and anootation
