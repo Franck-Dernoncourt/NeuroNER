@@ -30,7 +30,7 @@ def train_step(sess, dataset, sequence_number, model, parameters):
                     feed_dict)
     return transition_params_trained
 
-def prediction_step(sess, dataset, dataset_type, model, transition_params_trained, stats_graph_folder, epoch_number, parameters, dataset_filepaths):
+def prediction_step(sess, dataset, dataset_type, model, transition_params_trained, stats_graph_folder, epoch_number, parameters, dataset_filepaths,prediction_flag=False):
     if dataset_type == 'deploy':
         print('Predict labels for the {0} set'.format(dataset_type))
     else:
@@ -117,7 +117,10 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
             new_y_pred, new_y_true, new_label_indices, new_label_names, _, _ = remap_labels(all_predictions, all_y_true, dataset, parameters['main_evaluation_mode'])
             print(sklearn.metrics.classification_report(new_y_true, new_y_pred, digits=4, labels=new_label_indices, target_names=new_label_names))
 
-    return all_predictions, all_y_true, output_filepath, all_scores, all_indices
+    if prediction_flag:
+    	return all_predictions, all_y_true, output_filepath, all_scores, all_indices
+    else:
+    	return all_predictions, all_y_true, output_filepath
 
 
 def predict_labels(sess, model, transition_params_trained, parameters, dataset, epoch_number, stats_graph_folder, dataset_filepaths):

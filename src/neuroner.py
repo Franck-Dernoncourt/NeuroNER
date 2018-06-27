@@ -470,7 +470,7 @@ class NeuroNER(object):
         
         # Predict labels and output brat
         output_filepaths = {}
-        prediction_output = train.prediction_step(self.sess, self.dataset, dataset_type, self.model, self.transition_params_trained, self.stats_graph_folder, self.prediction_count, self.parameters, self.dataset_filepaths)
+        prediction_output = train.prediction_step(self.sess, self.dataset, dataset_type, self.model, self.transition_params_trained, self.stats_graph_folder, self.prediction_count, self.parameters, self.dataset_filepaths,prediction_flag=True)
         _, _, output_filepaths[dataset_type], _scores, _indices = prediction_output
         conll_to_brat.output_brat(output_filepaths, self.dataset_brat_folders, self.stats_graph_folder, overwrite=True)
         
