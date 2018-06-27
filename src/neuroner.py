@@ -442,7 +442,6 @@ class NeuroNER(object):
 
     def predict(self, text):
         self.prediction_count += 1        
-        
         if self.prediction_count == 1:
             self.parameters['dataset_text_folder'] = os.path.join('..', 'data', 'temp')
             self.stats_graph_folder, _ = self._create_stats_graph_folder(self.parameters)
