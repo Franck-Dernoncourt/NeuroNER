@@ -6,3 +6,6 @@
 *.pydevproject
 output/*
 data/*
+
+# OS X file
+.DS_Store
