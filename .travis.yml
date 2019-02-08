@@ -4,12 +4,11 @@ os:
     - linux
 language: python
 python: 
-  - "3.5"
+  - "3.6"
 # command to install dependencies
 install:
   - bash .travis_install_ubuntu.sh
-  - pip install tensorflow
-  - pip install -U networkx matplotlib scikit-learn scipy spacy pycorenlp
+  - pip install -r requirements.txt
   - python -m spacy download en
   # ensure that NeuroNER doesn't perform too many epochs (Travis jobs are limited to 50 minutes)
   - sed -i 's/maximum_number_of_epochs = 100/maximum_number_of_epochs = 1/g' src/parameters.ini
