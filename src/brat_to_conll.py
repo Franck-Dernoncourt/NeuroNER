@@ -66,41 +66,82 @@ def get_sentences_and_tokens_from_stanford(text, core_nlp):
         sentences.append(tokens)
     return sentences
 
-def get_entities_from_brat(text_filepath, annotation_filepath, verbose=False):
+def get_entities_from_brat(text_filepath, annotation_filepath, split_discontinuous, verbose=False):
     # load text
     with codecs.open(text_filepath, 'r', 'UTF-8') as f:
-        text =f.read()
+        text = f.read()
     if verbose: print("\ntext:\n{0}\n".format(text))
-
     # parse annotation file
-    entities = []
     with codecs.open(annotation_filepath, 'r', 'UTF-8') as f:
-        for line in f.read().splitlines():
-            anno = line.split()
-            id_anno = anno[0]
-            # parse entity
-            if id_anno[0] == 'T':
-                entity = {}
-                entity['id'] = id_anno
-                entity['type'] = anno[1]
-                entity['start'] = int(anno[2])
-                entity['end'] = int(anno[3])
-                entity['text'] = ' '.join(anno[4:])
-                if verbose:
-                    print("entity: {0}".format(entity))
-                # Check compatibility between brat text and anootation
-                if utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(text[entity['start']:entity['end']]) != \
-                    utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(entity['text']):
-                    print("Warning: brat text and annotation do not match.")
-                    print("\ttext: {0}".format(text[entity['start']:entity['end']]))
-                    print("\tanno: {0}".format(entity['text']))
-                # add to entitys data
-                entities.append(entity)
-    if verbose: print("\n\n")
-    
+        ann = f.read().splitlines()
+    entities = parse_brat_annotations(ann, text, split_discontinuous)
     return text, entities
 
-def check_brat_annotation_and_text_compatibility(brat_folder):
+def parse_brat_annotations(ann, text, split_discontinuous, verbose=False):
+    '''
+    Parse the contents of brat annotation files (.ann and .txt) for entities.
+
+    For compatibility with discontinuous annotations in brat >= 1.3, entity text
+    is from slicing the text per the annotation offsets, rather than from the
+    annotation reference text.
+
+    :param split_discontinuous: If True, split each discontinuous annotation
+    (brat >= 1.3) into separate annotations. If False, join the fragments into a
+    continuous annotation that starts with the first fragment and ends with the
+    last.
+    '''
+    ann = [line for line in ann if line[0] == 'T']
+    entities = []
+    for line in ann:
+        brat_id, entity_type, offsets, line_text = split_ann(line)
+        if split_discontinuous:
+            offsets = [(min(pair[0] for pair in offsets), max(pair[1] for pair in offsets))]
+        for start, end in offsets:
+            entity = {
+                    'id': brat_id,
+                    'type': entity_type,
+                    'start': start,
+                    'end': end,
+                    'text': text[start:end],
+                    }
+            entities.append(entity)
+    return entities
+
+def split_ann(line):
+    '''
+    Split a line from a brat .ann file into its components.
+
+    In a line from an .ann file that represents a text-bound annotation, a
+    sequential numeric ID prefixed with 'T' is followed by a tab, then an entity
+    type, a space, and at least one pair of space-delimited offsets.
+
+    Each of the offset pairs gives the range of a zero-indexed annotation span,
+    [start, end). With brat >= 1.3, annotations can be composed of discontinuous
+    "fragments." Multiple offset pairs are delimited by semicolons.
+
+    After the offset pair(s) and a tab comes the reference text. For
+    discontinous annotations, the reference text is the concatenation of the
+    fragments delimited by spaces. Note that this means that the annotated
+    entity as it appears in the text cannot necessarily be recovered from the
+    reference text.
+
+    See http://brat.nlplab.org/standoff.html.
+
+    Return:
+    - brat_id: brat annotation ID, e.g. 'T1'.
+    - entity_type: entity type, e.g. 'Org'.
+    - offsets: list of int offset tuples, e.g., [(0, 4)] for a continuous
+      annotation or [(0, 4), (6, 9)] for a discontinuous annotation with 2
+      fragments.
+    - line_text: reference text, e.g. 'Lorem ipsum'.
+    '''
+    brat_id, type_offsets, line_text = line.split('\t', maxsplit=2)
+    entity_type, offsets = type_offsets.split(maxsplit=1)
+    offsets = [pair.split() for pair in offsets.split(';')]
+    offsets = [(int(pair[0]), int(pair[1])) for pair in offsets]
+    return brat_id, entity_type, offsets, line_text
+
+def check_brat_annotation_and_text_compatibility(brat_folder, split_discontinuous):
     '''
     Check if brat annotation and text files are compatible.
     '''
@@ -113,10 +154,16 @@ def check_brat_annotation_and_text_compatibility(brat_folder):
         # check if annotation file exists
         if not os.path.exists(annotation_filepath):
             raise IOError("Annotation file does not exist: {0}".format(annotation_filepath))
-        text, entities = get_entities_from_brat(text_filepath, annotation_filepath)
+        text, entities = get_entities_from_brat(text_filepath, annotation_filepath, split_discontinuous)
+        for entity in entities:
+            if utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(text[entity['start']:entity['end']]) != \
+                utils_nlp.replace_unicode_whitespaces_with_ascii_whitespace(entity['text']):
+                print('Warning: brat text and annotation do not match:')
+                print("\ttext: {0}".format(text[entity['start']:entity['end']]))
+                print("\tanno: {0}".format(entity['text']))
     print("Done.")
 
-def brat_to_conll(input_folder, output_filepath, tokenizer, language):
+def brat_to_conll(input_folder, output_filepath, tokenizer, language, split_discontinuous):
     '''
     Assumes '.txt' and '.ann' files are in the input_folder.
     Checks for the compatibility between .txt and .ann at the same time.
@@ -139,7 +186,8 @@ def brat_to_conll(input_folder, output_filepath, tokenizer, language):
         if not os.path.exists(annotation_filepath):
             codecs.open(annotation_filepath, 'w', 'UTF-8').close()
 
-        text, entities = get_entities_from_brat(text_filepath, annotation_filepath)
+        text, entities = get_entities_from_brat(text_filepath,
+                annotation_filepath, split_discontinuous)
         entities = sorted(entities, key=lambda entity:entity["start"])
         
         if tokenizer == 'spacy':
