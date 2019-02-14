@@ -2,10 +2,14 @@
 Miscellaneous utility functions for natural language processing
 '''
 import codecs
-import re
-import utils
+import multiprocessing
 import os
+import re
+
 import numpy as np
+
+import utils
+
 
 def load_tokens_from_pretrained_token_embeddings(parameters):
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
@@ -24,19 +28,25 @@ def load_tokens_from_pretrained_token_embeddings(parameters):
     return tokens
 
 
+def line_to_token_and_vector(line):
+    line = line.strip()
+    line = line.split(' ')
+    if len(line) == 0: return (None, None)
+    token = line[0]
+    vector = np.array(list(map(float, line[1:])))
+    return token, vector
+
 def load_pretrained_token_embeddings(parameters):
+
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')
-    count = -1
-    token_to_vector = {}
-    for cur_line in file_input:
-        count += 1
-        #if count > 1000:break
-        cur_line = cur_line.strip()
-        cur_line = cur_line.split(' ')
-        if len(cur_line)==0:continue
-        token = cur_line[0]
-        vector = np.array([float(x) for x in cur_line[1:]])
-        token_to_vector[token] = vector
+
+    lines = file_input.readlines()[:1000] if parameters['debug'] else file_input.readlines()
+    pool = multiprocessing.Pool(parameters['number_of_cpu_threads'])
+
+    token_to_vector = dict(pool.map(line_to_token_and_vector, lines))
+    if None in token_to_vector:
+        token_to_vector.pop(None)
+
     file_input.close()
     return token_to_vector
 
