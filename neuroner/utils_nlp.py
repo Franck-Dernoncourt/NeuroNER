@@ -2,10 +2,12 @@
 Miscellaneous utility functions for natural language processing
 '''
 import codecs
-import re
-import utils
 import os
+import re
+
 import numpy as np
+
+from neuroner import utils
 
 def load_tokens_from_pretrained_token_embeddings(parameters):
     file_input = codecs.open(parameters['token_pretrained_embedding_filepath'], 'r', 'UTF-8')

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-import os
-import glob
 import codecs
-import spacy
-import utils_nlp
+import glob
 import json
+import os
+
 from pycorenlp import StanfordCoreNLP
+import spacy
+
+from neuroner import utils_nlp
 
 
 def get_start_and_end_offset_of_token_from_spacy(token):

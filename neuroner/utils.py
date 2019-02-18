@@ -2,11 +2,25 @@
 Miscellaneous utility functions
 '''
 import collections
-import operator
-import os
-import time
 import datetime
+import os
+import operator
 import shutil
+import time
+import pickle
+
+# https://stackoverflow.com/questions/2121874/python-pickling-after-changing-a-modules-directory
+class RenameUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        renamed_module = module
+        if module == "dataset":
+            renamed_module = "neuroner.dataset"
+
+        return super(RenameUnpickler, self).find_class(renamed_module, name)
+
+
+def renamed_load(file_obj):
+    return RenameUnpickler(file_obj).load()
 
 def order_dictionary(dictionary, mode, reverse=False):
     '''
