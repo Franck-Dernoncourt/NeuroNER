@@ -4,7 +4,7 @@
 
 NeuroNER is a program that performs named-entity recognition (NER). Website: [neuroner.com](http://neuroner.com).
 
-This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3 and TensorFlow 1.0, you can directly jump to the [Downloading NeuroNER](#downloading-neuroner).
+This page gives step-by-step instructions to install and use NeuroNER.
 
 
 ## Table of Contents
@@ -109,11 +109,11 @@ Perl is required because the official CoNLL-2003 evaluation script is written in
 
 ## Using NeuroNER
 
-NeuroNer can either be run from the command line or from a Python interpreter.
+NeuroNER can either be run from the command line or from a Python interpreter.
 
 ### Using NeuroNer from a Python interpreter
 
-To use neuroner from the command line, create an instance of the neuromodel with your desired arguments, and then call the relevant methods. Additional parameters can be set from a `parameters.ini` file in the working directory. For example:
+To use NeuroNER from the command line, create an instance of the neuromodel with your desired arguments, and then call the relevant methods. Additional parameters can be set from a `parameters.ini` file in the working directory. For example:
 
 ```
 from neuroner import neuromodel
