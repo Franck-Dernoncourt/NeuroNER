@@ -1,12 +1,14 @@
+import json
+import os
+import pkg_resources
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.metrics
-import os
-import utils_plots
-import json
-import time
-import utils_nlp
 
+from neuroner import utils_plots
+from neuroner import utils_nlp
 
 def assess_model(y_pred, y_true, labels, target_names, labels_with_o, target_names_with_o, dataset_type, stats_graph_folder, epoch_number, parameters,
                  evaluation_mode='bio', verbose=False):
@@ -134,7 +136,7 @@ def result_to_plot(folder_name=None):
     Loads results.json file in the ../stats_graphs/folder_name, and plot f1 vs epoch.
     Use for debugging purposes, or in case the program stopped due to error in plot_f1_vs_epoch.
     '''
-    stats_graph_folder=os.path.join('..', 'stats_graphs')
+    stats_graph_folder=os.path.join('.', 'stats_graphs')
     if folder_name == None:
         # Getting a list of all subdirectories in the current directory. Not recursive.
         subfolders = os.listdir(stats_graph_folder)
@@ -248,7 +250,15 @@ def evaluate_model(results, dataset, y_pred_all, y_true_all, stats_graph_folder,
     for dataset_type in ['train', 'valid', 'test']:
         if dataset_type not in output_filepaths.keys():
             continue
-        conll_evaluation_script = os.path.join('.', 'conlleval')
+
+        # run perl evaluation script in python package
+        # conll_evaluation_script = os.path.join('.', 'conlleval')
+        package_name = 'neuroner'
+        root_dir = os.path.dirname(pkg_resources.resource_filename(package_name, 
+            '__init__.py'))
+        print(root_dir)
+        conll_evaluation_script = os.path.join(root_dir, 'conlleval')
+
         conll_output_filepath = '{0}_conll_evaluation.txt'.format(output_filepaths[dataset_type])
         shell_command = 'perl {0} < {1} > {2}'.format(conll_evaluation_script, output_filepaths[dataset_type], conll_output_filepath)
         print('shell_command: {0}'.format(shell_command))

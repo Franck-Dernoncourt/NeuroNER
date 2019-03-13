@@ -1,9 +1,10 @@
-import os
 import codecs
-import utils
 import glob
+import os
 import shutil
-import utils_nlp
+
+from neuroner import utils
+from neuroner import utils_nlp
 
 def generate_reference_text_file_for_conll(conll_input_filepath, conll_output_filepath, text_folder):
     '''

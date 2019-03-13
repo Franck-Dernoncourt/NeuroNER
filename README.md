@@ -4,16 +4,15 @@
 
 NeuroNER is a program that performs named-entity recognition (NER). Website: [neuroner.com](http://neuroner.com).
 
-This page gives step-by-step instructions to install and use NeuroNER. If you already have Python 3.5 and TensorFlow 1.0, you can directly jump to the [Downloading NeuroNER](#downloading-neuroner).
+This page gives step-by-step instructions to install and use NeuroNER.
 
 
 ## Table of Contents
 
 <!-- toc -->
 
-- [Installing NeuroNER](#installing-neuroner)
-  * [Requirements](#requirements)
-  * [Downloading NeuroNER](#downloading-neuroner)
+- [Requirements](#requirements)
+- [Installation](#installation)
 - [Using NeuroNER](#using-neuroner)
   * [Adding a new dataset](#adding-a-new-dataset)
   * [Using a pretrained model](#using-a-pretrained-model)
@@ -23,90 +22,136 @@ This page gives step-by-step instructions to install and use NeuroNER. If you al
 
 <!-- tocstop -->
 
-## Installing NeuroNER
+## Requirements
 
-### Requirements
+NeuroNER relies on Python 3, TensorFlow 1.0+, and optionally on BRAT:
 
-NeuroNER relies on Python 3.5, TensorFlow 1.0+, and optionally on BRAT:
-
-- Python 3.5: NeuroNER does not work with Python 2.x. On Windows, it has to be Python 3.5 64-bit.
+- Python 3: NeuroNER does not work with Python 2.x. On Windows, it has to be Python 3.6 64-bit or later.
 - TensorFlow is a library for machine learning. NeuroNER uses it for its NER engine, which is based on neural networks. Official website: [https://www.tensorflow.org](https://www.tensorflow.org)
 - BRAT (optional) is a web-based annotation tool. It only needs to be installed if you wish to conveniently create annotations or view the predictions made by NeuroNER. Official website: [http://brat.nlplab.org](http://brat.nlplab.org)
 
-Installation instructions for TensorFlow, Python 3.5, and (optional) BRAT are given below for different types of operating systems:
+## Installation
 
-- [Mac](install_mac.md)
-- [Ubuntu](install_ubuntu.md)
-- [Windows](install_windows.md)
-
-
-Alternatively, you can use this [installation script](install_ubuntu.sh) for Ubuntu, which:
-
-1. Installs TensorFlow (CPU only) and Python 3.5.
-2. Downloads the NeuroNER code as well as the word embeddings.
-3. Starts training on the CoNLL-2003 dataset (the F1-score on the test set should be around 0.90, i.e. on par with state-of-the-art systems).
-
-To use this script, run the following command from the terminal:
+For GPU support, [GPU requirements for Tensorflow](https://www.tensorflow.org/install/) must be satisfied. If your system does not meet these requirements, you should use the CPU version. To install neuroner:
 
 ```
-wget https://raw.githubusercontent.com/Franck-Dernoncourt/NeuroNER/master/install_ubuntu.sh; bash install_ubuntu.sh
+# For CPU support (no GPU support):
+pip3 install neuroner[cpu]
+
+# For GPU support:
+pip3 install neuroner[gpu]
 ```
 
+You will also need to download some support packages.
 
-## Downloading NeuroNER
-
-To download NeuroNER code, download and unzip https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip, which can be done on Ubuntu and Mac OS X with:
-
-```
-wget https://github.com/Franck-Dernoncourt/NeuroNER/archive/master.zip
-sudo apt-get install -y unzip # This line is for Ubuntu users only
-unzip master.zip
-```
-
-It also needs some word embeddings, which should be downloaded from http://neuroner.com/data/word_vectors/glove.6B.100d.zip, unzipped and placed in `/data/word_vectors`. This can be done on Ubuntu and Mac OS X with:
+1. The English language module for Spacy:
 
 ```
-# Download some word embeddings
-mkdir NeuroNER-master/data/word_vectors
-cd NeuroNER-master/data/word_vectors
-wget http://neuroner.com/data/word_vectors/glove.6B.100d.zip
-unzip glove.6B.100d.zip
+# Load the Spacy English module
+python -m spacy download en
 ```
 
-NeuroNER is now ready to run.
+2. Word embeddings, which should be downloaded from http://neuroner.com/data/word_vectors/glove.6B.100d.zip, unzipped, and then placed in `./data/word_vectors`
 
+```
+# Get word embeddings
+mkdir data/word_vectors
+wget -P data/word_vectors http://neuroner.com/data/word_vectors/glove.6B.100d.zip
+unzip data/word_vectors/glove.6B.100d.zip -d data/word_vectors/
 
+```
+
+3. Load sample datasets. These can be loaded by calling the `neuromodel.fetch_data()` function from a Python interpreter or with the `--fetch_data` argument at the command line.
+
+```
+# load data from the command line
+neuroner --fetch_data=conll2003
+neuroner --fetch_data=example_unannotated_texts
+neuroner --fetch_data=i2b2_2014_deid
+```
+
+```
+# load data from a Python interpreter
+from neuroner import neuromodel
+neuromodel.fetch_data('conll2003')
+neuromodel.fetch_data('example_unannotated_texts')
+neuromodel.fetch_data('i2b2_2014_deid')
+```
+
+4. Load the sample pretrained models. The models can be loaded by calling the `neuromodel.fetch_trained_models()` function from a Python interpreter or with the `--fetch_trained_models` argument at the command line.
+
+```
+# load data from the command line
+neuroner --fetch_trained_model=conll_2003_en
+neuroner --fetch_trained_model=i2b2_2014_glove_spacy_bioes
+neuroner --fetch_trained_model=i2b2_2014_glove_stanford_bioes
+neuroner --fetch_trained_model=mimic_glove_spacy_bioes
+neuroner --fetch_trained_model=mimic_glove_stanford_bioes
+```
+
+```
+# load data from a Python interpreter
+from neuroner import neuromodel
+neuromodel.fetch_trained_model('conll_2003_en')
+neuromodel.fetch_trained_model('i2b2_2014_glove_spacy_bioes')
+neuromodel.fetch_trained_model('i2b2_2014_glove_stanford_bioes')
+neuromodel.fetch_trained_model('mimic_glove_spacy_bioes')
+neuromodel.fetch_trained_model('mimic_glove_stanford_bioes')
+```
+
+### Installing BRAT (optional) 
+
+BRAT is a tool that can be used to create, change or view the BRAT-style annotations. For installation and usage instructions, see the [BRAT website](http://brat.nlplab.org/installation.html).
+
+### Installing Perl (platform dependent)
+
+Perl is required because the official CoNLL-2003 evaluation script is written in this language: http://strawberryperl.com. For Unix and Mac OSX systems, Perl should already be installed. For Windows systems, you may need to install it.
 
 ## Using NeuroNER
 
-By default NeuroNER is configured to train and test on the CoNLL-2003 dataset. To start the training:
+NeuroNER can either be run from the command line or from a Python interpreter.
+
+### Using NeuroNer from a Python interpreter
+
+To use NeuroNER from the command line, create an instance of the neuromodel with your desired arguments, and then call the relevant methods. Additional parameters can be set from a `parameters.ini` file in the working directory. For example:
+
+```
+from neuroner import neuromodel
+nn = neuromodel.NeuroNER(train_model=False, use_pretrained_model=True)
+```
+
+More detail to follow.
+
+### Using NeuroNer from the command line
+
+By default NeuroNER is configured to train and test on the CoNLL-2003 dataset. Running neuroner with the default settings starts training on the CoNLL-2003 dataset (the F1-score on the test set should be around 0.90, i.e. on par with state-of-the-art systems). To start the training:
 
 ```
 # To use the CPU if you have installed tensorflow, or use the GPU if you have installed tensorflow-gpu:
-python3.5 main.py
+neuroner
 
 # To use the CPU only if you have installed tensorflow-gpu:
-CUDA_VISIBLE_DEVICES="" python3.5 main.py
+CUDA_VISIBLE_DEVICES="" neuroner
 
 # To use the GPU 1 only if you have installed tensorflow-gpu:
-CUDA_VISIBLE_DEVICES=1 python3.5 main.py
+CUDA_VISIBLE_DEVICES=1 neuroner
 ```
 
-If you wish to change any of NeuroNER parameters, you should modify the [`src/parameters.ini`](src/parameters.ini) configuration file. Alternatively, any parameter may be specified in the command line.
+If you wish to change any of NeuroNER parameters, you can modify the [`parameters.ini`](parameters.ini) configuration file in your working directory or specify it as an argument.
 
 For example, to reduce the number of training epochs and not use any pre-trained token embeddings:
-```
-python3.5 main.py --maximum_number_of_epochs=2 --token_pretrained_embedding_filepath=""
-```
 
+```
+neuroner --maximum_number_of_epochs=2 --token_pretrained_embedding_filepath=""
+```
 
 To perform NER on some plain texts using a pre-trained model:
 
 ```
-python3.5 main.py --train_model=False --use_pretrained_model=True --dataset_text_folder=../data/example_unannotated_texts --pretrained_model_folder=../trained_models/conll_2003_en
+neuroner --train_model=False --use_pretrained_model=True --dataset_text_folder=./data/example_unannotated_texts --pretrained_model_folder=./trained_models/conll_2003_en
 ```
 
-If a parameter is specified in both the [`src/parameters.ini`](src/parameters.ini) configuration file and as a command line argument, then the command line argument takes precedence (i.e., the parameter in [`src/parameters.ini`](src/parameters.ini) is ignored). You may specify a different configuration file with the `--parameters_filepath` command line argument. The command line arguments have no default value except for `--parameters_filepath`, which points to [`src/parameters.ini`](src/parameters.ini).
+If a parameter is specified in both the [`parameters.ini`](parameters.ini) configuration file and as an argument, then the argument takes precedence (i.e., the parameter in [`parameters.ini`](parameters.ini) is ignored). You may specify a different configuration file with the `--parameters_filepath` command line argument. The command line arguments have no default value except for `--parameters_filepath`, which points to [`parameters.ini`](parameters.ini).
 
 NeuroNER has 3 modes of operation:
 
@@ -128,11 +173,9 @@ We provide several examples of datasets:
 - [`data/conll2003/en`](data/conll2003/en): annotated dataset with the CoNLL-2003 format, containing 3 files (`train.txt`, `valid.txt` and  `test.txt`).
 - [`data/example_unannotated_texts`](data/example_unannotated_texts): unannotated dataset with the BRAT format, containing 1 folder (`deploy/`). Note that the BRAT format with no annotation is the same as plain texts.
 
-
-
 ### Using a pretrained model
 
-In order to use a pretrained model, the `pretrained_model_folder` parameter in the [`src/parameters.ini`](src/parameters.ini) configuration file must be set to the folder containing the pretrained model. The following parameters in the [`src/parameters.ini`](src/parameters.ini) configuration file must also be set to the same values as in the configuration file located in the specified `pretrained_model_folder`:
+In order to use a pretrained model, the `pretrained_model_folder` parameter in the [`parameters.ini`](parameters.ini) configuration file must be set to the folder containing the pretrained model. The following parameters in the [`parameters.ini`](parameters.ini) configuration file must also be set to the same values as in the configuration file located in the specified `pretrained_model_folder`:
 
 ```
 use_character_lstm
@@ -146,10 +189,9 @@ tagging_format
 tokenizer
 ```
 
-
 ### Sharing a pretrained model
 
-You are highly encouraged to share a model trained on their own datasets, so that other users can use the pretrained model on other datasets. We provide the [`src/prepare_pretrained_model.py`](src/prepare_pretrained_model.py) script to make it easy to prepare a pretrained model for sharing. In order to use the script, one only needs to specify the `output_folder_name`, `epoch_number`, and `model_name` parameters in the script.
+You are highly encouraged to share a model trained on their own datasets, so that other users can use the pretrained model on other datasets. We provide the [`neuroner/prepare_pretrained_model.py`](neuroner/prepare_pretrained_model.py) script to make it easy to prepare a pretrained model for sharing. In order to use the script, one only needs to specify the `output_folder_name`, `epoch_number`, and `model_name` parameters in the script.
 
 By default, the only information about the dataset contained in the pretrained model is the list of tokens that appears in the dataset used for training and the corresponding embeddings learned from the dataset.
 
@@ -161,7 +203,7 @@ when running the script. In this case, it is highly recommended to use some exte
 
 ```freeze_token_embeddings = True```
 
-in the [`src/parameters.ini`](src/parameters.ini) configuration file during training.
+in the [`parameters.ini`](parameters.ini) configuration file during training.
 
 In order to share a pretrained model, please [submit a new issue](https://github.com/Franck-Dernoncourt/NeuroNER/issues/new) on the GitHub repository.
 
