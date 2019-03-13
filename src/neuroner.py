@@ -24,7 +24,7 @@ import configparser
 from pprint import pprint
 # http://stackoverflow.com/questions/42217532/tensorflow-version-1-0-0-rc2-on-windows-opkernel-op-bestsplits-device-typ
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-print('NeuroNER version: {0}'.format('1.0-dev'))
+print('NeuroNER version: {0}'.format('1.0-dev2'))
 print('TensorFlow version: {0}'.format(tf.__version__))
 import warnings
 warnings.filterwarnings('ignore')
