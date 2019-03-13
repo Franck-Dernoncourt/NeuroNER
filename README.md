@@ -36,10 +36,10 @@ For GPU support, [GPU requirements for Tensorflow](https://www.tensorflow.org/in
 
 ```
 # For CPU support (no GPU support):
-pip3 install neuroner[cpu]
+pip3 install pyneuroner[cpu]
 
 # For GPU support:
-pip3 install neuroner[gpu]
+pip3 install pyneuroner[gpu]
 ```
 
 You will also need to download some support packages.
