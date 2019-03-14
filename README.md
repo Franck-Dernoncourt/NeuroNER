@@ -47,31 +47,29 @@ You will also need to download some support packages.
 1. The English language module for Spacy:
 
 ```
-# Load the Spacy English module
+# Download the SpaCy English module
 python -m spacy download en
 ```
 
-2. Word embeddings, which should be downloaded from http://neuroner.com/data/word_vectors/glove.6B.100d.zip, unzipped, and then placed in `./data/word_vectors`
+2. Download word embeddings from http://neuroner.com/data/word_vectors/glove.6B.100d.zip, unzip them to the folder `./data/word_vectors`
 
 ```
 # Get word embeddings
-mkdir data/word_vectors
 wget -P data/word_vectors http://neuroner.com/data/word_vectors/glove.6B.100d.zip
 unzip data/word_vectors/glove.6B.100d.zip -d data/word_vectors/
-
 ```
 
 3. Load sample datasets. These can be loaded by calling the `neuromodel.fetch_data()` function from a Python interpreter or with the `--fetch_data` argument at the command line.
 
 ```
-# load data from the command line
+# Load a dataset from the command line
 neuroner --fetch_data=conll2003
 neuroner --fetch_data=example_unannotated_texts
 neuroner --fetch_data=i2b2_2014_deid
 ```
 
 ```
-# load data from a Python interpreter
+# Load a dataset from a Python interpreter
 from neuroner import neuromodel
 neuromodel.fetch_data('conll2003')
 neuromodel.fetch_data('example_unannotated_texts')
@@ -81,7 +79,7 @@ neuromodel.fetch_data('i2b2_2014_deid')
 4. Load the sample pretrained models. The models can be loaded by calling the `neuromodel.fetch_trained_models()` function from a Python interpreter or with the `--fetch_trained_models` argument at the command line.
 
 ```
-# load data from the command line
+# Load a pre-trained model from the command line
 neuroner --fetch_trained_model=conll_2003_en
 neuroner --fetch_trained_model=i2b2_2014_glove_spacy_bioes
 neuroner --fetch_trained_model=i2b2_2014_glove_stanford_bioes
@@ -90,7 +88,7 @@ neuroner --fetch_trained_model=mimic_glove_stanford_bioes
 ```
 
 ```
-# load data from a Python interpreter
+# Load a pre-trained model from a Python interpreter
 from neuroner import neuromodel
 neuromodel.fetch_trained_model('conll_2003_en')
 neuromodel.fetch_trained_model('i2b2_2014_glove_spacy_bioes')
