@@ -97,63 +97,6 @@ def _fetch(name,content_type=None):
         msg = "{} not found in {} package.".format(name,package_name)
         print(msg)
 
-    # if pkg_resources.resource_isdir(package_name, resource_path):
-        
-    #     # get list of files
-    #     files = pkg_resources.resource_listdir(package_name, resource_path)
-    #     fileset = {}
-
-    #     # load data
-    #     for f in files:
-    #         resource_path = '/'.join((content_type,name,f))
-    #         fileset[f] = pkg_resources.resource_string(package_name, 
-    #             resource_path)
-
-    #     # create containing dir
-    #     container_dir = os.path.join('.',content_type,name)
-
-    #     # write to local dir
-    #     if os.path.isdir(container_dir):
-    #         msg = "Directory '{}' already exists.".format(container_dir)
-    #         print(msg)
-    #     else: 
-    #         _make_local_dir(container_dir)
-    #         for f,contents in fileset.items():
-    #             _write_file(os.path.join(container_dir,f),contents)
-
-    # else:
-    #     msg = "{} not found in {} package.".format(name,package_name)
-    #     print(msg)
-
-# def _make_local_dir(path):
-#     """
-#     Make any required local directories to prepare for downloading.
-
-#     Args:
-#         path (str): name of directory to create
-#     """
-#     if os.path.isdir(path):
-#         msg = "Directory '{}' already exists.".format(path)
-#         warnings.warn(msg)
-#     else:
-#         os.makedirs(path)
-#         print('Created directory: {}'.format(path))
-
-# def _write_file(filename,content):
-#     """
-#     Write to file. Assumes directory already exists.
-
-#     Args:
-#         filename (str): full path to file
-#         content (obj): data to write to file.
-#     """
-#     if os.path.isfile(filename):
-#         msg = "File '{}' already exists.".format(filename)
-#         warnings.warn(msg)      
-#     else:
-#         with open(filename, 'wb') as f:
-#             f.write(content)
-
 def _get_default_param():
     """
     Get the default parameters.
@@ -255,46 +198,53 @@ def _clean_param_dtypes(param):
 
 def load_parameters(**kwargs):
     '''
-    Load parameters from the ini file if specified, take into account any command 
+    Load parameters from the ini file if specified, take into account any command
     line argument, and ensure that each parameter is cast to the correct type.
-    
+
     Command line arguments take precedence over parameters specified in the parameter file.
     '''
-    param = _get_default_param()
+    param = {}
+    param_default = _get_default_param()
 
     # use parameter path if provided, otherwise use default
-    try: 
-        parameters_filepath = kwargs['parameters_filepath']
+    try:
+        if kwargs['parameters_filepath']:
+            parameters_filepath = kwargs['parameters_filepath']
     except:
-        parameters_filepath = param['parameters_filepath']
+        parameters_filepath = param_default['parameters_filepath']
 
     param_config, param_file_txt = _get_config_param(parameters_filepath)
 
     # Parameter file settings should overwrite default settings
-    for k,v in param_config.items():
-        param[k] = v    
-
-    # Command line args should overwrite settings in the parameter file
-    for k,v in kwargs.items():
+    for k, v in param_config.items():
         param[k] = v
 
-    # if loading a pretrained model, set to pretrain hyperparameters 
+    # Command line args should overwrite settings in the parameter file
+    for k, v in kwargs.items():
+        param[k] = v
+
+    # Any missing args can be set to default
+    for k, v in param_default.items():
+        if k not in param:
+            param[k] = param_default[k]
+
+    # if loading a pretrained model, set to pretrain hyperparameters
     if param['use_pretrained_model']:
 
-        pretrain_path = os.path.join(param['pretrained_model_folder'], 
+        pretrain_path = os.path.join(param['pretrained_model_folder'],
             'parameters.ini')
 
         if os.path.isfile(pretrain_path):
             pretrain_param, _ = _get_config_param(pretrain_path)
-            
-            pretrain_list = ['use_character_lstm', 'character_embedding_dimension', 
-                'character_lstm_hidden_state_dimension', 'token_embedding_dimension', 
+
+            pretrain_list = ['use_character_lstm', 'character_embedding_dimension',
+                'character_lstm_hidden_state_dimension', 'token_embedding_dimension',
                 'token_lstm_hidden_state_dimension', 'use_crf']
 
             for name in pretrain_list:
                 if str(param[name]) != str(pretrain_param[name]):
-                    msg = """WARNING: parameter '{0}' was overwritten from '{1}' to '{2}' 
-                        for consistency with the pretrained model""".format(name, 
+                    msg = """WARNING: parameter '{0}' was overwritten from '{1}' to '{2}'
+                        for consistency with the pretrained model""".format(name,
                             param[name], pretrain_param[name])
                     print(msg)
                     param[name] = pretrain_param[name]
@@ -481,8 +431,8 @@ class NeuroNER(object):
 
     prediction_count = 0
 
-    def __init__(self,**kwargs):
-        
+    def __init__(self, **kwargs):
+
         # Set parameters
         self.parameters, self.conf_parameters = load_parameters(**kwargs)
         self.dataset_filepaths, self.dataset_brat_folders = self._get_valid_dataset_filepaths(self.parameters)
@@ -491,7 +441,7 @@ class NeuroNER(object):
         # Load dataset
         self.modeldata = dataset.Dataset(verbose=self.parameters['verbose'], debug=self.parameters['debug'])
         token_to_vector = self.modeldata.load_dataset(self.dataset_filepaths, self.parameters)
-        
+
         # Launch session. Automatically choose a device
         # if the specified one doesn't exist
         session_conf = tf.ConfigProto(
@@ -533,17 +483,6 @@ class NeuroNER(object):
         stats_graph_folder = os.path.join(parameters['output_folder'], model_name) 
         utils.create_folder_if_not_exists(stats_graph_folder)
         return stats_graph_folder, experiment_timestamp
-
-    def _load_parameters(self,**kwargs):
-        """
-        Load parameters from the ini file if specified, take into account any command line argument, 
-            and ensure that each parameter is cast to the correct type.
-
-        Command line arguments take precedence over parameters specified in the parameter file.
-        """
-        param, param_file_txt  = load_parameters(**kwargs)
-        
-        return param, param_file_txt    
     
     def _get_valid_dataset_filepaths(self, parameters, dataset_types=['train', 'valid', 'test', 'deploy']):
         """
