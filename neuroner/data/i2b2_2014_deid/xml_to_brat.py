@@ -9,8 +9,7 @@ import glob
 import codecs
 import shutil
 
-sys.path.append(os.path.join('..','..','neuroner'))
-from conll_to_brat import output_entities
+from neuroner.conll_to_brat import output_entities
 import utils
 
 
