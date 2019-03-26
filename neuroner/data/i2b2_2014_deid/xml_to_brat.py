@@ -10,7 +10,7 @@ import codecs
 import shutil
 
 from neuroner.conll_to_brat import output_entities
-import utils
+from neuroner import utils
 
 
 def xml_to_brat(input_folder, output_folder, overwrite=True):
