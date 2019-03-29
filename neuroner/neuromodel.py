@@ -242,6 +242,7 @@ def load_parameters(**kwargs):
 
     # clean the data types
     param = _clean_param_dtypes(param)
+    print(param)
 
     # if loading a pretrained model, set to pretrain hyperparameters
     if param['use_pretrained_model']:
@@ -251,13 +252,14 @@ def load_parameters(**kwargs):
 
         if os.path.isfile(pretrain_path):
             pretrain_param, _ = _get_config_param(pretrain_path)
+            pretrain_param = _clean_param_dtypes(pretrain_param)
 
             pretrain_list = ['use_character_lstm', 'character_embedding_dimension',
                 'character_lstm_hidden_state_dimension', 'token_embedding_dimension',
                 'token_lstm_hidden_state_dimension', 'use_crf']
 
             for name in pretrain_list:
-                if str(param[name]) != str(pretrain_param[name]):
+                if param[name] != pretrain_param[name]:
                     msg = """WARNING: parameter '{0}' was overwritten from '{1}' to '{2}'
                         for consistency with the pretrained model""".format(name,
                             param[name], pretrain_param[name])
@@ -266,12 +268,6 @@ def load_parameters(**kwargs):
         else:
             msg = """Warning: pretraining parameter file not found."""
             print(msg)
-
-    # # if running tests
-    # if param['experiment_name'] == 'test':
-    #     param_file_txt = configparser.ConfigParser()
-    #     test_param_path = os.path.join('test', 'test-parameters-training.ini')
-    #     param_file_txt.read(test_param_path)
 
     # update param_file_txt to reflect the overriding
     param_to_section = utils.get_parameter_to_section_of_configparser(param_file_txt)
@@ -785,7 +781,7 @@ class NeuroNER(object):
             f.write(text)
 
         # Update deploy filepaths
-        dataset_filepaths, dataset_brat_folders = self._get_valid_dataset_filepaths(self.parameters, 
+        dataset_filepaths, dataset_brat_folders = self._get_valid_dataset_filepaths(self.parameters,
             dataset_types=[dataset_type])
         self.dataset_filepaths.update(dataset_filepaths)
         self.dataset_brat_folders.update(dataset_brat_folders)    
