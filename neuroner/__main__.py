@@ -45,6 +45,7 @@ def parse_arguments(arguments=None):
     parser.add_argument('--number_of_gpus', required=False, default=None, help='')
     parser.add_argument('--optimizer', required=False, default=None, help='')
     parser.add_argument('--output_folder', required=False, default=None, help='')
+    parser.add_argument('--output_scores', required=False, default=None, help='')
     parser.add_argument('--patience', required=False, default=None, help='')
     parser.add_argument('--plot_format', required=False, default=None, help='')
     parser.add_argument('--pretrained_model_folder', required=False, default=None, help='')
