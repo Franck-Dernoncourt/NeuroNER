@@ -16,12 +16,12 @@ warnings.filterwarnings('ignore')
 from neuroner import neuromodel
 
 def parse_arguments(arguments=None):
-    ''' Parse the NeuroNER arguments
+    """
+    Parse the NeuroNER arguments
 
     arguments:
         arguments the arguments, optionally given as argument
-    '''
-    # default_param = neuromodel._get_default_param()
+    """
 
     parser = argparse.ArgumentParser(description='''NeuroNER CLI''', formatter_class=RawTextHelpFormatter)
 

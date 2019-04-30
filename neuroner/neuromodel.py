@@ -91,7 +91,7 @@ def _fetch(name, content_type=None):
         if os.path.isdir(dest_dir):
             msg = "Directory '{}' already exists.".format(dest_dir)
             print(msg)
-        else: 
+        else:
             shutil.copytree(src_dir, dest_dir)
             msg = "Directory created: '{}'.".format(dest_dir)
             print(msg)
@@ -125,6 +125,7 @@ def _get_default_param():
              'number_of_gpus':0,
              'optimizer':'sgd',
              'output_folder':'./output',
+             'output_scores':False,
              'patience':10,
              'parameters_filepath': os.path.join('.','parameters.ini'),
              'plot_format':'pdf',
@@ -242,7 +243,6 @@ def load_parameters(**kwargs):
 
     # clean the data types
     param = _clean_param_dtypes(param)
-    print(param)
 
     # if loading a pretrained model, set to pretrain hyperparameters
     if param['use_pretrained_model']:
@@ -277,8 +277,7 @@ def load_parameters(**kwargs):
         except:
             pass
 
-    if param['verbose']:
-        pprint(param)
+    pprint(param)
 
     return param, param_file_txt
 
@@ -376,7 +375,7 @@ def check_param_compatibility(parameters, dataset_filepaths):
                 in the specified dataset folder: {0}""".format(parameters['dataset_text_folder'])
             raise IOError(msg)
     # if not parameters['train_model'] and not parameters['use_pretrained_model']:
-    else: 
+    else:
         raise ValueError("At least one of train_model and use_pretrained_model must be set to True.")
 
     if parameters['use_pretrained_model']:
@@ -390,12 +389,16 @@ def check_param_compatibility(parameters, dataset_filepaths):
     if parameters['gradient_clipping_value'] < 0:
         parameters['gradient_clipping_value'] = abs(parameters['gradient_clipping_value'])
 
-    if parameters['output_scores'] and parameters['use_crf']:
-        warn_msg = """Warning when use_crf is True, scores are decoded
-        using the crf. As a result, the scores cannot be directly interpreted
-        in terms of class prediction.
-        """
-        warnings.warn(warn_msg)
+    try:
+        if parameters['output_scores'] and parameters['use_crf']:
+            warn_msg = """Warning when use_crf is True, scores are decoded
+            using the crf. As a result, the scores cannot be directly interpreted
+            in terms of class prediction.
+            """
+            warnings.warn(warn_msg)
+    except KeyError:
+        parameters['output_scores'] = False
+
 
 
 class NeuroNER(object):
