@@ -108,10 +108,14 @@ def prediction_step(sess, dataset, dataset_type, model, transition_params_traine
                     break
 
             split_line.append(prediction)
-            if parameters['output_scores']:
-                # space separated scores
-                scores = ' '.join([str(i) for i in scores])
-                split_line.append('{}'.format(scores))
+            try:
+                if parameters['output_scores']:
+                    # space separated scores
+                    scores = ' '.join([str(i) for i in scores])
+                    split_line.append('{}'.format(scores))
+            except KeyError:
+                pass
+
             output_string += ' '.join(split_line) + '\n'
 
         output_file.write(output_string+'\n')
