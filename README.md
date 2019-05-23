@@ -76,7 +76,7 @@ neuromodel.fetch_data('example_unannotated_texts')
 neuromodel.fetch_data('i2b2_2014_deid')
 ```
 
-4. Load a pretrained model. The models can be loaded by calling the `neuromodel.fetch_trained_models()` function from a Python interpreter or with the `--fetch_trained_models` argument at the command line.
+4. Load a pretrained model. The models can be loaded by calling the `neuromodel.fetch_model()` function from a Python interpreter or with the `--fetch_trained_models` argument at the command line.
 
 ```
 # Load a pre-trained model from the command line
@@ -90,11 +90,11 @@ neuroner --fetch_trained_model=mimic_glove_stanford_bioes
 ```
 # Load a pre-trained model from a Python interpreter
 from neuroner import neuromodel
-neuromodel.fetch_trained_model('conll_2003_en')
-neuromodel.fetch_trained_model('i2b2_2014_glove_spacy_bioes')
-neuromodel.fetch_trained_model('i2b2_2014_glove_stanford_bioes')
-neuromodel.fetch_trained_model('mimic_glove_spacy_bioes')
-neuromodel.fetch_trained_model('mimic_glove_stanford_bioes')
+neuromodel.fetch_model('conll_2003_en')
+neuromodel.fetch_model('i2b2_2014_glove_spacy_bioes')
+neuromodel.fetch_model('i2b2_2014_glove_stanford_bioes')
+neuromodel.fetch_model('mimic_glove_spacy_bioes')
+neuromodel.fetch_model('mimic_glove_stanford_bioes')
 ```
 
 ### Installing BRAT (optional) 
