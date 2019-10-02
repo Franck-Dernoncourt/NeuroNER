@@ -201,7 +201,8 @@ def _clean_param_dtypes(param):
             'reload_token_embeddings', 'reload_token_lstm',
             'reload_feedforward', 'reload_crf', 'check_for_lowercase',
             'check_for_digits_replaced_with_zeros', 'output_scores',
-            'freeze_token_embeddings', 'load_only_pretrained_token_embeddings']:
+            'freeze_token_embeddings', 'load_only_pretrained_token_embeddings',
+            'load_all_pretrained_token_embeddings']:
             param[k] = distutils.util.strtobool(v)
 
     return param
