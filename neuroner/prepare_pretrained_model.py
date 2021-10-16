@@ -102,8 +102,8 @@ def prepare_pretrained_model_for_restoring(output_folder_name, epoch_number,
     This can be done by specifying the token_pretrained_embedding_filepath 
     and setting freeze_token_embeddings = True in parameters.ini for training.
     '''
-    input_model_folder = os.path.join('.', 'output', output_folder_name, 'model')
-    output_model_folder = os.path.join('.', 'trained_models', model_name)
+    input_model_folder = os.path.join('.', 'output', model_name, 'model')
+    output_model_folder = os.path.join('.', 'trained_models', output_folder_name)    
     utils.create_folder_if_not_exists(output_model_folder)
 
     # trim and copy dataset.pickle
